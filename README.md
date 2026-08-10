@@ -142,7 +142,7 @@ chatbit/
 │   ├── services/
 │   └── package.json
 │
-├── server/
+├── backend/
 │   ├── config/
 │   │   └── database.js
 │   ├── controllers/
