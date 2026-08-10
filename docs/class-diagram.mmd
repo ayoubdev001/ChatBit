@@ -1,0 +1,49 @@
+classDiagram
+
+    class User {
+        +int id
+        +string fullName
+        +string email
+        +string passwordHash
+        +Role role
+        +boolean isOnline
+    }
+
+    class Conversation {
+        +int id
+        +string subject
+        +ConversationStatus status
+        +int clientId
+        +int agentId
+        +datetime createdAt
+        +datetime closedAt
+    }
+
+    class Message {
+        +int id
+        +int conversationId
+        +int senderId
+        +string content
+        +boolean isRead
+        +datetime createdAt
+    }
+
+    class Role {
+        <<enumeration>>
+        CLIENT
+        AGENT
+    }
+
+    class ConversationStatus {
+        <<enumeration>>
+        EN_ATTENTE
+        EN_COURS
+        FERMEE
+    }
+
+    User --> Role : has
+    Conversation --> ConversationStatus : has
+
+    User "1" --> "0..*" Conversation : creates / handles
+    Conversation "1" --> "0..*" Message : contains
+    User "1" --> "0..*" Message : sends

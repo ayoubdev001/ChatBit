@@ -1,0 +1,43 @@
+flowchart LR
+
+    Customer[Customer]
+    Agent[Agent]
+
+    subgraph Chatbit
+        Auth[Register / Log in]
+        Profile[View profile]
+
+        Create[Create conversation]
+        View[View conversations]
+        Messages[View / Send messages]
+        Join[Join conversation]
+        Leave[Leave conversation]
+
+        Pending[View pending conversations]
+        Take[Take conversation]
+        Close[Close conversation]
+
+        Realtime[Typing / Online presence]
+        Notification[Receive closure notification]
+    end
+
+    Customer --> Auth
+    Customer --> Profile
+    Customer --> Create
+    Customer --> View
+    Customer --> Messages
+    Customer --> Join
+    Customer --> Leave
+    Customer --> Realtime
+    Customer --> Notification
+
+    Agent --> Auth
+    Agent --> Profile
+    Agent --> View
+    Agent --> Messages
+    Agent --> Join
+    Agent --> Leave
+    Agent --> Pending
+    Agent --> Take
+    Agent --> Close
+    Agent --> Realtime
