@@ -28,84 +28,6 @@ Chatbit uses a client-server architecture with REST and WebSocket communication:
                                                    +-------------------+
 ```
 
-## ES Modules structure
-
-The backend uses **ES Modules**, not CommonJS.
-
-- `app.js` creates and configures the Express application. It registers middleware and REST routes, but does not start the HTTP server.
-- `server.js` imports `app.js`, creates the HTTP server, attaches Socket.IO and starts listening on the configured port.
-
-### `server/package.json`
-
-```json
-{
-  "name": "chatbit-server",
-  "version": "1.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "nodemon server.js",
-    "start": "node server.js"
-  }
-}
-```
-
-### `app.js`
-
-```js
-import express from 'express';
-
-import authRoutes from './routes/auth.routes.js';
-import usersRoutes from './routes/users.routes.js';
-import conversationsRoutes from './routes/conversations.routes.js';
-
-const app = express();
-
-app.use(express.json());
-
-app.use('/api/auth', authRoutes);
-app.use('/api/users', usersRoutes);
-app.use('/api/conversations', conversationsRoutes);
-
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok' });
-});
-
-export default app;
-```
-
-### `server.js`
-
-```js
-import 'dotenv/config';
-import http from 'node:http';
-import { Server } from 'socket.io';
-
-import app from './app.js';
-import { connectDatabase } from './config/database.js';
-import { registerSocketHandlers } from './sockets/chat.handlers.js';
-import { socketAuth } from './sockets/socket.auth.js';
-
-const PORT = process.env.PORT || 3000;
-
-await connectDatabase();
-
-const httpServer = http.createServer(app);
-
-const io = new Server(httpServer, {
-  cors: {
-    origin: process.env.CLIENT_URL
-  }
-});
-
-io.use(socketAuth);
-registerSocketHandlers(io);
-
-httpServer.listen(PORT, () => {
-  console.log(`Chatbit server is running on port ${PORT}`);
-});
-```
-
-> With ES Modules, include the `.js` extension in local imports. For example, use `./app.js`, not `./app`.
 
 ## Sequelize database layer
 
@@ -259,15 +181,135 @@ chatbit/
 │
 └── README.md
 ```
+## Class diagram
 
-The previous SQL schema file and the following diagram files are not included:
+The class diagram presents the main users, business entities, controllers and services of Chatbit.
 
-- `schema.sql`
-- `erd.mmd`
-- `sequence-login.puml`
-- `sequence-message.puml`
-- `sequence-close.puml`
-- `conversation-state.mmd`
+```mermaid
+classDiagram
+    class User {
+        +int id
+        +string fullName
+        +string email
+        +string passwordHash
+        +Role role
+        +boolean isOnline
+        +datetime createdAt
+        +register()
+        +login()
+        +getProfile()
+        +logout()
+    }
+
+    class Client {
+        +createConversation(subject)
+        +sendMessage(conversationId, content)
+        +viewConversations()
+        +viewMessages(conversationId)
+    }
+
+    class Agent {
+        +viewPendingConversations()
+        +joinConversation(conversationId)
+        +sendMessage(conversationId, content)
+        +closeConversation(conversationId)
+    }
+
+    class Conversation {
+        +int id
+        +string subject
+        +ConversationStatus status
+        +int clientId
+        +int agentId
+        +datetime createdAt
+        +datetime closedAt
+        +create()
+        +assignAgent(agentId)
+        +close()
+        +addMessage(message)
+    }
+
+    class Message {
+        +int id
+        +int conversationId
+        +int senderId
+        +string content
+        +boolean isRead
+        +datetime sentAt
+        +markAsRead()
+    }
+
+    class AuthController {
+        +register(data)
+        +login(email, password)
+    }
+
+    class UserController {
+        +getMe(userId)
+    }
+
+    class ConversationController {
+        +getConversations(userId)
+        +createConversation(userId, subject)
+        +getMessages(conversationId, page)
+        +closeConversation(conversationId, agentId)
+    }
+
+    class AuthService {
+        +hashPassword(password)
+        +comparePassword(password, hash)
+        +generateToken(user)
+        +verifyToken(token)
+    }
+
+    class SocketService {
+        +authenticateSocket(socket)
+        +joinConversation(socket, conversationId)
+        +leaveConversation(socket, conversationId)
+        +sendMessage(socket, data)
+        +startTyping(socket, conversationId)
+        +stopTyping(socket, conversationId)
+        +updatePresence(socket)
+    }
+
+    class Sequelize {
+        +authenticate()
+        +sync()
+    }
+
+    class Role {
+        <<enumeration>>
+        CLIENT
+        AGENT
+    }
+
+    class ConversationStatus {
+        <<enumeration>>
+        EN_ATTENTE
+        EN_COURS
+        FERMEE
+    }
+
+    User <|-- Client
+    User <|-- Agent
+
+    User --> Role
+    Conversation --> ConversationStatus
+
+    Client "1" --> "0..*" Conversation : creates
+    Agent "0..1" --> "0..*" Conversation : handles
+
+    Conversation "1" *-- "0..*" Message : contains
+    User "1" --> "0..*" Message : sends
+
+    AuthController --> AuthService : uses
+    AuthController --> Sequelize : accesses
+    UserController --> Sequelize : accesses
+    ConversationController --> Sequelize : accesses
+    ConversationController --> SocketService : notifies
+    SocketService --> Sequelize : persists
+```
+
 
 ## Features
 
