@@ -18,15 +18,15 @@ export const Conversation = sequelize.define(
       allowNull: false,
       defaultValue: "en_attente",
     },
-    clientid: {
+    clientId: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    agentid: {
+    agentId: {
       type: DataTypes.INTEGER,
       allowNull: true,
     },
-    closedat: {
+    closedAt: {
       type: DataTypes.DATE,
       allowNull: true,
     },

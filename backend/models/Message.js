@@ -9,11 +9,11 @@ export const Message = sequelize.define(
       primaryKey: true,
       autoIncrement: true,
     },
-    conversationid: {
+    conversationId: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    senderid: {
+    senderId: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
@@ -21,7 +21,6 @@ export const Message = sequelize.define(
       type: DataTypes.TEXT,
       allowNull: false,
     },
-    
   },
   {
     tableName: "messages",

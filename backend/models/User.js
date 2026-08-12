@@ -21,7 +21,7 @@ export const User = sequelize.define(
         isEmail: true,
       },
     },
-    passwordhash: {
+    passwordHash: {
       type: DataTypes.STRING,
       allowNull: false,
     },
@@ -29,7 +29,7 @@ export const User = sequelize.define(
       type: DataTypes.ENUM("client", "agent"),
       allowNull: false,
     },
-    isonline: {
+    isOnline: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },

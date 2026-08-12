@@ -1,0 +1,63 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "ChatBit API",
+    "version": "1.0.0",
+    "description": "Real-time customer support platform API"
+  },
+  "servers": [
+    { "url": "http://localhost:3000/api" }
+  ],
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "summary": "Register a new user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["fullname", "email", "password", "role"],
+                "properties": {
+                  "fullname": { "type": "string", "example": "Test User" },
+                  "email": { "type": "string", "example": "test@test.com" },
+                  "password": { "type": "string", "example": "1234" },
+                  "role": { "type": "string", "enum": ["client", "agent"] }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "User created" },
+          "409": { "description": "Email already in use" }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Login and get a JWT",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": { "type": "string", "example": "test@test.com" },
+                  "password": { "type": "string", "example": "1234" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Returns token + user" },
+          "401": { "description": "Invalid credentials" }
+        }
+      }
+    }
+  }
+}
