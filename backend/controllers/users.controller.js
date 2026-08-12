@@ -27,6 +27,7 @@ export async function getAllAgents(req, res, next) {
   try {
     const agents = await User.findAll({
       where: { role: "agent" },
+        attributes: ["id", "fullname", "email", "role", "isOnline"],
       order: [["createdAt", "ASC"]],
     });
 
