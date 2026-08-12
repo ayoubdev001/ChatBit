@@ -1,0 +1,118 @@
+import React from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { COLORS } from "../../constants/colors";
+import StatusBadge from "./StatusBadge";
+
+interface ConversationCardProps {
+    subject: string;
+    message: string;
+    time: string;
+    status: "en_attente" | "en_cours" | "fermee";
+    onPress: () => void;
+}
+
+export default function ConversationCard({
+    subject,
+    message,
+    time,
+    status,
+    onPress,
+}: ConversationCardProps) {
+    return (
+        <Pressable
+            onPress={onPress}
+            style={({ pressed }) => [
+                styles.card,
+                pressed && styles.pressed,
+            ]}
+        >
+            <View style={styles.avatar}>
+                <Text style={styles.avatarText}>S</Text>
+            </View>
+
+            <View style={styles.content}>
+                <View style={styles.topRow}>
+                    <Text
+                        style={styles.subject}
+                        numberOfLines={1}
+                    >
+                        {subject}
+                    </Text>
+
+                    <Text style={styles.time}>{time}</Text>
+                </View>
+
+                <Text
+                    style={styles.message}
+                    numberOfLines={1}
+                >
+                    {message}
+                </Text>
+
+                <StatusBadge status={status} />
+            </View>
+        </Pressable>
+    );
+}
+
+const styles = StyleSheet.create({
+    card: {
+        flexDirection: "row",
+        backgroundColor: COLORS.white,
+        borderRadius: 18,
+        padding: 14,
+        marginBottom: 12,
+        borderWidth: 1,
+        borderColor: COLORS.border,
+    },
+
+    pressed: {
+        opacity: 0.75,
+    },
+
+    avatar: {
+        width: 48,
+        height: 48,
+        borderRadius: 16,
+        backgroundColor: "#E9D8F0",
+        alignItems: "center",
+        justifyContent: "center",
+        marginRight: 12,
+    },
+
+    avatarText: {
+        color: COLORS.border,
+        fontSize: 18,
+        fontWeight: "800",
+    },
+
+    content: {
+        flex: 1,
+    },
+
+    topRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+    },
+
+    subject: {
+        flex: 1,
+        color: COLORS.text,
+        fontSize: 14,
+        fontWeight: "700",
+        marginRight: 8,
+    },
+
+    time: {
+        color: COLORS.textSecondary,
+        fontSize: 10,
+    },
+
+    message: {
+        color: COLORS.textSecondary,
+        fontSize: 12,
+        marginTop: 5,
+        marginBottom: 8,
+    },
+});
