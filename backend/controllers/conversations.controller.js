@@ -1,29 +1,18 @@
-import { Conversation, Message, User } from "../models/index.js";
+import { Conversation, Message,} from "../models/index.js";
 import { Op } from "sequelize";
 
                                                       // POST /api/conversations - client creates a new conversation
 
 export async function createConversation(req, res, next) {
   try {
-
-    const { subject,agentId } = req.body;
-
-    const agent = await User.findByPk(agentId)
-
-    //reject if agent is missing OR not actually an agent
-    if(!agent || agent.role !=="agent" ) {
-        return res.status(404).json({error:"Agent Not found!"})
-    }
-
-    if (!subject) {
-      return res.status(400).json({ error: "Subject is required" });
-    }
+    const { subject } = req.body;
+    if (!subject) return res.status(400).json({ error: "Subject is required" });
 
     const conversation = await Conversation.create({
-       //get the userId from the jwt verfaction not from the customer
       subject,
-      agentId:agent.id,
-      clientId: req.user.userId, 
+      //get the user infos from jwt veriyfaction
+      clientId: req.user.userId,
+      agentId: null,
       status: "en_attente",
     });
 
@@ -31,7 +20,7 @@ export async function createConversation(req, res, next) {
   } catch (err) {
     next(err);
   }
-}; 
+}
 
                                                    // get /api/conversations - what clint or agent see in deffrent
 

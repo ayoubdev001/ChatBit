@@ -103,32 +103,48 @@
           "401": { "description": "No or invalid token" }
         }
       },
-      "post": {
-        "summary": "Create a new conversation (client only)",
-        "tags": ["Conversations"],
-        "security": [{ "bearerAuth": [] }],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": ["subject", "agentId"],
-                "properties": {
-                  "subject": { "type": "string", "example": "Order #123 not delivered" },
-                  "agentId": { "type": "integer", "example": 2 }
-                }
-              }
-            }
+"post": {
+  "summary": "Create a new conversation (client only)",
+  "tags": ["Conversations"],
+  "security": [{ "bearerAuth": [] }],
+  "requestBody": {
+    "required": true,
+    "content": {
+      "application/json": {
+        "schema": {
+          "type": "object",
+          "required": ["subject"],
+          "properties": {
+            "subject": { "type": "string", "example": "Order #123 not delivered" }
           }
-        },
-        "responses": {
-          "201": { "description": "Conversation created" },
-          "400": { "description": "Missing subject" },
-          "403": { "description": "Only clients can create conversations" },
-          "404": { "description": "Agent not found" }
         }
       }
+    }
+  },
+  "responses": {
+    "201": {
+      "description": "Conversation created, unassigned until an agent joins via socket",
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "integer", "example": 2 },
+              "subject": { "type": "string", "example": "Order #123 not delivered" },
+              "clientId": { "type": "integer", "example": 2 },
+              "agentId": { "type": "integer", "nullable": true, "example": null },
+              "status": { "type": "string", "enum": ["en_attente", "en_cours", "fermee"], "example": "en_attente" },
+              "closedAt": { "type": "string", "nullable": true, "format": "date-time", "example": null },
+              "createdAt": { "type": "string", "format": "date-time" },
+              "updatedAt": { "type": "string", "format": "date-time" }
+            }
+          }
+        }
+      }
+    },
+    "400": { "description": "Missing subject" },
+    "403": { "description": "Only clients can create conversations" }
+  }
     },
     "/conversations/{id}/messages": {
       "get": {
