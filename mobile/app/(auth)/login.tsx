@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -13,27 +12,15 @@ import { router } from "expo-router";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 import { COLORS } from "../../constants/colors";
+import { useAuth } from "../../context/AuthContext";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const { login, loading, error } = useAuth();
 
   const handleLogin = async () => {
-    try {
-      setLoading(true);
-
-      console.log({
-        email,
-        password,
-      });
-
-   
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
+    await login({ email, password });
   };
 
   const handleRegister = () => {
@@ -50,14 +37,14 @@ export default function LoginScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Logo */}
+        {/* logo */}
         <View style={styles.logoContainer}>
           <View style={styles.logo}>
             <Text style={styles.logoIcon}>▰</Text>
           </View>
         </View>
 
-        {/* Header */}
+        {/* header */}
         <Text style={styles.title}>Bienvenue sur</Text>
 
         <Text style={styles.brand}>ChatBit</Text>
@@ -66,7 +53,7 @@ export default function LoginScreen() {
           Votre assistance, simple et instantanée.
         </Text>
 
-        {/* Form */}
+        {/* form */}
         <View style={styles.form}>
           <Input
             label="Adresse e-mail"
@@ -86,16 +73,9 @@ export default function LoginScreen() {
               onChangeText={setPassword}
               secureTextEntry
             />
-
-            <Pressable
-              style={styles.forgotPassword}
-              onPress={() => console.log("Forgot password")}
-            >
-              <Text style={styles.forgotText}>
-                Mot de passe oublié ?
-              </Text>
-            </Pressable>
           </View>
+
+          {error && <Text style={styles.error}>{error}</Text>}
 
           <Button
             title="Se connecter →"
@@ -104,29 +84,12 @@ export default function LoginScreen() {
           />
         </View>
 
-        {/* Divider */}
-        <View style={styles.dividerContainer}>
-          <View style={styles.divider} />
-
-          <Text style={styles.or}>ou</Text>
-
-          <View style={styles.divider} />
-        </View>
-
         {/* Register */}
         <Button
           title="Créer un compte"
           variant="outline"
           onPress={handleRegister}
         />
-
-        {/* Footer */}
-        <Text style={styles.footer}>
-          En vous connectant, vous acceptez nos{" "}
-          <Text style={styles.link}>Conditions d'utilisation</Text>
-          {" "}et notre{" "}
-          <Text style={styles.link}>Politique de confidentialité</Text>.
-        </Text>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -192,47 +155,10 @@ const styles = StyleSheet.create({
     width: "100%",
   },
 
-  forgotPassword: {
-    position: "absolute",
-    right: 5,
-    top: 0,
-  },
-
-  forgotText: {
-    color: COLORS.primary,
-    fontSize: 11,
-    fontWeight: "600",
-  },
-
-  dividerContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: 22,
-  },
-
-  divider: {
-    flex: 1,
-    height: 1,
-    backgroundColor: COLORS.border,
-  },
-
-  or: {
-    color: COLORS.textSecondary,
+  error: {
+    color: "#e53935",
     fontSize: 12,
-    marginHorizontal: 14,
-  },
-
-  footer: {
+    marginBottom: 12,
     textAlign: "center",
-    color: COLORS.textSecondary,
-    fontSize: 9,
-    lineHeight: 15,
-    marginTop: 24,
-    paddingHorizontal: 15,
-  },
-
-  link: {
-    color: COLORS.primary,
-    fontWeight: "600",
   },
 });
