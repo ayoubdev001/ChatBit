@@ -1,7 +1,9 @@
 import api from "./api";
+
 import {
   saveToken,
-  removeToken,
+  saveUser,
+  clearStorage,
 } from "../lib/storage";
 
 export type UserRole = "client" | "agent";
@@ -12,6 +14,7 @@ export interface User {
   email: string;
   role: UserRole;
   isOnline?: boolean;
+  createdAt?: string;
 }
 
 export interface LoginData {
@@ -39,7 +42,10 @@ export async function login(
     data
   );
 
-  await saveToken(response.data.token);
+  const { token, user } = response.data;
+
+  await saveToken(token);
+  await saveUser(user);
 
   return response.data;
 }
@@ -58,9 +64,11 @@ export async function register(
 export async function getMe(): Promise<User> {
   const response = await api.get<User>("/users/me");
 
+  await saveUser(response.data);
+
   return response.data;
 }
 
 export async function logout(): Promise<void> {
-  await removeToken();
+  await clearStorage();
 }

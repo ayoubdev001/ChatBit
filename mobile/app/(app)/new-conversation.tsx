@@ -1,48 +1,127 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
+
 import { router } from "expo-router";
 
 import Button from "../../components/ui/Button";
+import Input from "../../components/ui/Input";
+
 import { COLORS } from "../../constants/colors";
+
+import {
+  getAgents,
+  createConversation,
+  Agent,
+} from "../../services/conversation.service";
 
 export default function NewConversationScreen() {
   const [subject, setSubject] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [agents, setAgents] = useState<Agent[]>([]);
+  const [selectedAgent, setSelectedAgent] =
+    useState<number | null>(null);
 
-  const handleCreateConversation = async () => {
-    if (!subject.trim()) {
-      return;
-    }
+  const [loadingAgents, setLoadingAgents] =
+    useState(true);
 
+  const [loading, setLoading] =
+    useState(false);
+
+  useEffect(() => {
+    loadAgents();
+  }, []);
+
+  const loadAgents = async () => {
     try {
-      setLoading(true);
-      console.log("New conversation:", subject);
+      setLoadingAgents(true);
 
-     
+      const data = await getAgents();
+
+      setAgents(data);
+
+      if (data.length > 0) {
+        setSelectedAgent(data[0].id);
+      }
     } catch (error) {
-      console.error(error);
+      console.log("Agents error:", error);
+
+      Alert.alert(
+        "Erreur",
+        "Impossible de charger les agents."
+      );
     } finally {
-      setLoading(false);
+      setLoadingAgents(false);
     }
   };
 
-  const goBack = () => {
-    router.back();
-  };
+  const handleCreateConversation =
+    async () => {
+      if (!subject.trim()) {
+        Alert.alert(
+          "Sujet requis",
+          "Veuillez saisir le sujet de votre demande."
+        );
+        return;
+      }
+
+      if (!selectedAgent) {
+        Alert.alert(
+          "Agent requis",
+          "Aucun agent disponible."
+        );
+        return;
+      }
+
+      try {
+        setLoading(true);
+
+        const conversation =
+          await createConversation({
+            subject: subject.trim(),
+            agentId: selectedAgent,
+          });
+
+        console.log(
+          "Conversation created:",
+          conversation
+        );
+
+        router.replace(
+          `/chat/${conversation.id}`
+        );
+      } catch (error: any) {
+        console.log(
+          "Create conversation error:",
+          error?.response?.data
+        );
+
+        Alert.alert(
+          "Erreur",
+          error?.response?.data?.error ||
+            "Impossible de créer la conversation."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
 
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior={
+        Platform.OS === "ios"
+          ? "padding"
+          : undefined
+      }
     >
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -52,9 +131,11 @@ export default function NewConversationScreen() {
         <View style={styles.header}>
           <Pressable
             style={styles.backButton}
-            onPress={goBack}
+            onPress={() => router.back()}
           >
-            <Text style={styles.backIcon}>‹</Text>
+            <Text style={styles.backIcon}>
+              ‹
+            </Text>
           </Pressable>
 
           <Text style={styles.headerTitle}>
@@ -73,66 +154,128 @@ export default function NewConversationScreen() {
         </View>
 
         <Text style={styles.title}>
-          Comment pouvons-nous{"\n"}vous aider ?
+          Comment pouvons-nous{"\n"}
+          vous aider ?
         </Text>
 
         <Text style={styles.description}>
-          Décrivez brièvement votre problème ou votre
-          question. Un agent vous répondra dès que possible.
+          Décrivez brièvement votre problème ou
+          votre question.
         </Text>
 
         <View style={styles.form}>
-          <Text style={styles.label}>
-            Sujet de votre demande
-          </Text>
-
-          <TextInput
+          <Input
+            label="Sujet de votre demande"
+            placeholder="Ex : Problème avec ma commande"
             value={subject}
             onChangeText={setSubject}
-            placeholder="Ex : Problème avec ma commande"
-            placeholderTextColor={COLORS.textSecondary}
-            style={styles.input}
+            multiline
+            numberOfLines={4}
             maxLength={100}
+            textAlignVertical="top"
+            style={styles.subjectInput}
           />
-
-          <View style={styles.counterContainer}>
-            <Text style={styles.helperText}>
-              Soyez précis pour nous aider à mieux vous accompagner.
-            </Text>
-
-            <Text style={styles.counter}>
-              {subject.length}/100
-            </Text>
-          </View>
         </View>
 
-        <View style={styles.infoCard}>
-          <View style={styles.infoIcon}>
-            <Text style={styles.infoIconText}>i</Text>
-          </View>
+        <Text style={styles.agentTitle}>
+          Agent disponible
+        </Text>
 
-          <View style={styles.infoContent}>
-            <Text style={styles.infoTitle}>
-              Temps de réponse
-            </Text>
+        {loadingAgents ? (
+          <Text style={styles.loadingText}>
+            Chargement des agents...
+          </Text>
+        ) : agents.length === 0 ? (
+          <Text style={styles.emptyText}>
+            Aucun agent disponible.
+          </Text>
+        ) : (
+          agents.map((agent) => {
+            const selected =
+              selectedAgent === agent.id;
 
-            <Text style={styles.infoText}>
-              Un agent est généralement disponible
-              en quelques minutes.
-            </Text>
-          </View>
-        </View>
+            return (
+              <Pressable
+                key={agent.id}
+                onPress={() =>
+                  setSelectedAgent(agent.id)
+                }
+                style={[
+                  styles.agentCard,
+                  selected &&
+                    styles.agentCardSelected,
+                ]}
+              >
+                <View
+                  style={[
+                    styles.agentAvatar,
+                    selected &&
+                      styles.agentAvatarSelected,
+                  ]}
+                >
+                  <Text
+                    style={
+                      styles.agentAvatarText
+                    }
+                  >
+                    {agent.fullname
+                      .charAt(0)
+                      .toUpperCase()}
+                  </Text>
+                </View>
+
+                <View
+                  style={styles.agentInfo}
+                >
+                  <Text
+                    style={styles.agentName}
+                  >
+                    {agent.fullname}
+                  </Text>
+
+                  <Text
+                    style={styles.agentEmail}
+                  >
+                    {agent.email}
+                  </Text>
+                </View>
+
+                <View
+                  style={[
+                    styles.radio,
+                    selected &&
+                      styles.radioSelected,
+                  ]}
+                >
+                  {selected && (
+                    <View
+                      style={
+                        styles.radioInner
+                      }
+                    />
+                  )}
+                </View>
+              </Pressable>
+            );
+          })
+        )}
 
         <Button
           title="Démarrer la conversation →"
-          onPress={handleCreateConversation}
+          onPress={
+            handleCreateConversation
+          }
           loading={loading}
-          disabled={!subject.trim()}
+          disabled={
+            !subject.trim() ||
+            !selectedAgent ||
+            loadingAgents
+          }
         />
 
         <Pressable
           style={styles.cancelButton}
-          onPress={goBack}
+          onPress={() => router.back()}
         >
           <Text style={styles.cancelText}>
             Annuler
@@ -146,7 +289,8 @@ export default function NewConversationScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor:
+      COLORS.background,
   },
 
   content: {
@@ -159,17 +303,20 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 35,
+    justifyContent:
+      "space-between",
+    marginBottom: 30,
   },
 
   backButton: {
     width: 42,
     height: 42,
     borderRadius: 14,
-    backgroundColor: COLORS.white,
+    backgroundColor:
+      COLORS.white,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor:
+      COLORS.border,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -178,7 +325,6 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     fontSize: 30,
     lineHeight: 30,
-    marginTop: -3,
   },
 
   headerTitle: {
@@ -193,29 +339,30 @@ const styles = StyleSheet.create({
 
   illustrationContainer: {
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 18,
   },
 
   illustration: {
-    width: 76,
-    height: 76,
-    borderRadius: 24,
-    backgroundColor: COLORS.primary,
+    width: 70,
+    height: 70,
+    borderRadius: 22,
+    backgroundColor:
+      COLORS.primary,
     alignItems: "center",
     justifyContent: "center",
   },
 
   illustrationIcon: {
     color: COLORS.white,
-    fontSize: 34,
+    fontSize: 30,
     fontWeight: "800",
   },
 
   title: {
     color: COLORS.text,
     textAlign: "center",
-    fontSize: 25,
-    lineHeight: 32,
+    fontSize: 24,
+    lineHeight: 31,
     fontWeight: "800",
   },
 
@@ -223,95 +370,119 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     textAlign: "center",
     fontSize: 12,
-    lineHeight: 19,
+    lineHeight: 18,
     marginTop: 10,
-    marginBottom: 30,
-    paddingHorizontal: 12,
+    marginBottom: 25,
   },
 
   form: {
-    marginBottom: 20,
+    marginBottom: 5,
   },
 
-  label: {
-    color: COLORS.text,
-    fontSize: 12,
-    fontWeight: "700",
-    marginBottom: 8,
-  },
-
-  input: {
-    width: "100%",
+  subjectInput: {
     minHeight: 120,
-    backgroundColor: COLORS.white,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 15,
-    color: COLORS.text,
-    fontSize: 13,
+    paddingTop: 15,
     textAlignVertical: "top",
   },
 
-  counterContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 7,
+  agentTitle: {
+    color: COLORS.text,
+    fontSize: 14,
+    fontWeight: "800",
+    marginBottom: 10,
   },
 
-  helperText: {
-    flex: 1,
+  loadingText: {
     color: COLORS.textSecondary,
-    fontSize: 9,
-    lineHeight: 14,
-    marginRight: 10,
+    fontSize: 12,
+    marginBottom: 20,
   },
 
-  counter: {
-    color: COLORS.textSecondary,
-    fontSize: 9,
+  emptyText: {
+    color: COLORS.danger,
+    fontSize: 12,
+    marginBottom: 20,
   },
 
-  infoCard: {
+  agentCard: {
     flexDirection: "row",
-    backgroundColor: "#F1EAF5",
+    alignItems: "center",
+    backgroundColor:
+      COLORS.white,
     borderRadius: 18,
-    padding: 14,
-    marginBottom: 22,
+    borderWidth: 1,
+    borderColor:
+      COLORS.border,
+    padding: 12,
+    marginBottom: 10,
   },
 
-  infoIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 11,
-    backgroundColor: COLORS.border,
+  agentCardSelected: {
+    borderColor:
+      COLORS.primary,
+    borderWidth: 2,
+  },
+
+  agentAvatar: {
+    width: 45,
+    height: 45,
+    borderRadius: 15,
+    backgroundColor:
+      COLORS.background,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 10,
+    marginRight: 12,
   },
 
-  infoIconText: {
-    color: COLORS.white,
-    fontSize: 15,
+  agentAvatarSelected: {
+    backgroundColor:
+      COLORS.primary,
+  },
+
+  agentAvatarText: {
+    color: COLORS.primary,
+    fontSize: 17,
     fontWeight: "800",
   },
 
-  infoContent: {
+  agentInfo: {
     flex: 1,
   },
 
-  infoTitle: {
+  agentName: {
     color: COLORS.text,
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: "800",
-    marginBottom: 3,
   },
 
-  infoText: {
+  agentEmail: {
     color: COLORS.textSecondary,
     fontSize: 10,
-    lineHeight: 15,
+    marginTop: 3,
+  },
+
+  radio: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    borderColor:
+      COLORS.border,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  radioSelected: {
+    borderColor:
+      COLORS.primary,
+  },
+
+  radioInner: {
+    width: 11,
+    height: 11,
+    borderRadius: 6,
+    backgroundColor:
+      COLORS.primary,
   },
 
   cancelButton: {

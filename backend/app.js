@@ -22,7 +22,7 @@ const openApiSpec = JSON.parse(
 );
 
 app.use(
-  "/api",
+  "/docs",
   apiReference({
     spec: { content: openApiSpec },
   })
