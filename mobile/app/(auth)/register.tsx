@@ -7,38 +7,96 @@ import {
   StyleSheet,
   Text,
   View,
+  Alert,
 } from "react-native";
+
 import { router } from "expo-router";
 
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 import { COLORS } from "../../constants/colors";
+import { register } from "../../services/auth.service";
 
 export default function RegisterScreen() {
   const [fullname, setFullname] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] =
+    useState("");
+
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
+    if (
+      !fullname.trim() ||
+      !email.trim() ||
+      !password.trim() ||
+      !confirmPassword.trim()
+    ) {
+      Alert.alert(
+        "Champs requis",
+        "Veuillez remplir tous les champs."
+      );
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert(
+        "Mot de passe",
+        "Le mot de passe doit contenir au moins 6 caractères."
+      );
+      return;
+    }
+
     if (password !== confirmPassword) {
-      console.log("Les mots de passe ne correspondent pas");
+      Alert.alert(
+        "Erreur",
+        "Les mots de passe ne correspondent pas."
+      );
       return;
     }
 
     try {
       setLoading(true);
 
-      
-      console.log({
-        fullname,
-        email,
+      const user = await register({
+        fullname: fullname.trim(),
+        email: email.trim(),
         password,
+        role: "client",
       });
 
-    } catch (error) {
-      console.error("Register error:", error);
+      console.log(
+        "Register success:",
+        user
+      );
+
+      Alert.alert(
+        "Compte créé 🎉",
+        "Votre compte a été créé avec succès.",
+        [
+          {
+            text: "Se connecter",
+            onPress: () => {
+              router.replace("/(auth)/login");
+            },
+          },
+        ]
+      );
+    } catch (error: any) {
+      console.log(
+        "Register error:",
+        error?.response?.data
+      );
+
+      const message =
+        error?.response?.data?.error ||
+        "Impossible de créer le compte.";
+
+      Alert.alert(
+        "Inscription échouée",
+        message
+      );
     } finally {
       setLoading(false);
     }
@@ -51,7 +109,11 @@ export default function RegisterScreen() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior={
+        Platform.OS === "ios"
+          ? "padding"
+          : undefined
+      }
     >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -61,7 +123,9 @@ export default function RegisterScreen() {
         {/* Logo */}
         <View style={styles.logoContainer}>
           <View style={styles.logo}>
-            <Text style={styles.logoIcon}>▰</Text>
+            <Text style={styles.logoIcon}>
+              ▰
+            </Text>
           </View>
         </View>
 
@@ -108,12 +172,18 @@ export default function RegisterScreen() {
             label="Confirmer le mot de passe"
             placeholder="••••••••"
             value={confirmPassword}
-            onChangeText={setConfirmPassword}
+            onChangeText={
+              setConfirmPassword
+            }
             secureTextEntry
           />
 
           <Button
-            title="Créer mon compte →"
+            title={
+              loading
+                ? "Création..."
+                : "Créer mon compte →"
+            }
             onPress={handleRegister}
             loading={loading}
           />
@@ -141,7 +211,8 @@ export default function RegisterScreen() {
           et notre{" "}
           <Text style={styles.link}>
             Politique de confidentialité
-          </Text>.
+          </Text>
+          .
         </Text>
       </ScrollView>
     </KeyboardAvoidingView>

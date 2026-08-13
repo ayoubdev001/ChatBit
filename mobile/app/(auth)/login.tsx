@@ -7,12 +7,15 @@ import {
   StyleSheet,
   Text,
   View,
+  Alert,
 } from "react-native";
+
 import { router } from "expo-router";
 
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 import { COLORS } from "../../constants/colors";
+import { login } from "../../services/auth.service";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -20,17 +23,47 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
+    if (!email.trim() || !password.trim()) {
+      Alert.alert(
+        "Champs requis",
+        "Veuillez remplir votre email et votre mot de passe."
+      );
+      return;
+    }
+
     try {
       setLoading(true);
 
-      console.log({
-        email,
+      const result = await login({
+        email: email.trim(),
         password,
       });
 
-   
-    } catch (error) {
-      console.error(error);
+      console.log("Login success:", result.user);
+
+      Alert.alert(
+        "Bienvenue 👋",
+        `Bonjour ${result.user.fullname}`,
+        [
+          {
+            text: "Continuer",
+            onPress: () => {
+              router.replace("/(app)");
+            },
+          },
+        ]
+      );
+    } catch (error: any) {
+      console.log(
+        "Login error:",
+        error?.response?.data
+      );
+
+      const message =
+        error?.response?.data?.error ||
+        "Email ou mot de passe incorrect.";
+
+      Alert.alert("Connexion échouée", message);
     } finally {
       setLoading(false);
     }
@@ -43,7 +76,11 @@ export default function LoginScreen() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior={
+        Platform.OS === "ios"
+          ? "padding"
+          : undefined
+      }
     >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -53,14 +90,20 @@ export default function LoginScreen() {
         {/* Logo */}
         <View style={styles.logoContainer}>
           <View style={styles.logo}>
-            <Text style={styles.logoIcon}>▰</Text>
+            <Text style={styles.logoIcon}>
+              ▰
+            </Text>
           </View>
         </View>
 
         {/* Header */}
-        <Text style={styles.title}>Bienvenue sur</Text>
+        <Text style={styles.title}>
+          Bienvenue sur
+        </Text>
 
-        <Text style={styles.brand}>ChatBit</Text>
+        <Text style={styles.brand}>
+          ChatBit
+        </Text>
 
         <Text style={styles.subtitle}>
           Votre assistance, simple et instantanée.
@@ -89,7 +132,12 @@ export default function LoginScreen() {
 
             <Pressable
               style={styles.forgotPassword}
-              onPress={() => console.log("Forgot password")}
+              onPress={() =>
+                Alert.alert(
+                  "Mot de passe oublié",
+                  "Cette fonctionnalité sera disponible prochainement."
+                )
+              }
             >
               <Text style={styles.forgotText}>
                 Mot de passe oublié ?
@@ -98,7 +146,11 @@ export default function LoginScreen() {
           </View>
 
           <Button
-            title="Se connecter →"
+            title={
+              loading
+                ? "Connexion..."
+                : "Se connecter →"
+            }
             onPress={handleLogin}
             loading={loading}
           />
@@ -108,7 +160,9 @@ export default function LoginScreen() {
         <View style={styles.dividerContainer}>
           <View style={styles.divider} />
 
-          <Text style={styles.or}>ou</Text>
+          <Text style={styles.or}>
+            ou
+          </Text>
 
           <View style={styles.divider} />
         </View>
@@ -123,9 +177,14 @@ export default function LoginScreen() {
         {/* Footer */}
         <Text style={styles.footer}>
           En vous connectant, vous acceptez nos{" "}
-          <Text style={styles.link}>Conditions d'utilisation</Text>
+          <Text style={styles.link}>
+            Conditions d'utilisation
+          </Text>
           {" "}et notre{" "}
-          <Text style={styles.link}>Politique de confidentialité</Text>.
+          <Text style={styles.link}>
+            Politique de confidentialité
+          </Text>
+          .
         </Text>
       </ScrollView>
     </KeyboardAvoidingView>
