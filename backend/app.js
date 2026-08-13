@@ -21,7 +21,7 @@ const openApiSpec = JSON.parse(
   readFileSync(new URL("./docs/scalar.yaml", import.meta.url))
 );
 app.use(
-  "/api",
+  "/docs",
   apiReference({
     spec: { content: openApiSpec },
   })
