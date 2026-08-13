@@ -20,13 +20,13 @@ app.get("/health", (req, res) => {
 const openApiSpec = JSON.parse(
   readFileSync(new URL("./docs/scalar.yaml", import.meta.url))
 );
-
 app.use(
-  "/docs",
+  "/api",
   apiReference({
     spec: { content: openApiSpec },
   })
 );
+
 
 // ---- Routes ----
 app.use("/api/auth", authRoutes);

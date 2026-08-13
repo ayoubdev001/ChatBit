@@ -6,7 +6,7 @@
     "description": "Real-time customer support platform API"
   },
   "servers": [
-    { "url": "http://localhost:3000/docs" }
+    { "url": "http://localhost:3000/api" }
   ],
   "components": {
     "securitySchemes": {
