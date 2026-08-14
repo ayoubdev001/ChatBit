@@ -13,5 +13,5 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
-, "api/socket.js", "api/axios.js", "asyncstorg/storage.js", "app/(auth)/login.jsx", "app/(auth)/register.jsx", "app/(app)/new-conversation.jsx", "app/(app)/profile.jsx", "app/(app)/_layout.jsx", "app/(app)/index.jsx", "app/(auth)/_layout.jsx", "app/_layout.jsx"  ]
+, "api/socket.js", "api/axios.js", "asyncstorg/storage.js", "app/(auth)/login.jsx", "app/(auth)/register.jsx", "app/(app)/new-conversation.jsx", "app/(app)/profile.jsx", "app/(app)/_layout.jsx", "app/(app)/index.jsx", "app/(auth)/_layout.jsx", "app/_layout.jsx", "constants/colors.js", "components/chat/ChatHeader.jsx", "components/chat/MessageBubble.jsx", "components/chat/MessageInput.jsx", "components/chat/TypingIndicator.jsx", "components/conversations/ConversationCard.jsx", "components/conversations/EmptyConversations.jsx", "components/conversations/StatusBadge.jsx", "components/ui/Avatar.jsx", "components/ui/Button.jsx", "components/ui/ErrorMessage.jsx", "components/ui/Input.jsx", "components/ui/Loading.jsx", "types/auth.js", "types/conversation.js", "types/message.js", "types/user.js"  ]
 }
