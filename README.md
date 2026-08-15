@@ -1,5 +1,5 @@
 # ChatBit 💬
-# ChatBit 💬
+
 
 Real-time customer support chat application built for **Souq Express**, a Moroccan e-commerce platform.  
 Replaces slow telephone/email support with an instant WhatsApp-style chat experience.
