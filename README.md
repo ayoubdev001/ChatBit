@@ -1,495 +1,799 @@
-# Chatbit
+# ChatBit 💬
+# ChatBit 💬
 
-Real-time customer support chat application for **Souq Express**, a Moroccan e-commerce company.
+Real-time customer support chat application built for **Souq Express**, a Moroccan e-commerce platform.  
+Replaces slow telephone/email support with an instant WhatsApp-style chat experience.
 
-Chatbit replaces slow telephone and email support with a centralized mobile chat system. Customers can create support conversations, while agents can manage and close them in real time.
+---
 
-## Architecture
+## Educational Goal
 
-Chatbit uses a client-server architecture with REST and WebSocket communication:
+The core concept of this project is **WebSocket** — specifically how it differs from HTTP:
 
-```text
-+----------------------+       HTTP/REST        +-------------------------+
-|   Expo Mobile App    | <--------------------> |   Node.js / Express API |
-|                      |                        |                         |
-| - Expo Router        |                        | - app.js               |
-| - Axios              |                        | - server.js            |
-| - TanStack Query     |                        | - REST routes           |
-| - socket.io-client   | <--------------------> | - Socket.IO             |
-+----------------------+      WebSocket         +------------+------------+
-                                                             |
-                                                             v
-                                                   +-------------------+
-                                                   |    PostgreSQL      |
-                                                   | Sequelize ORM      |
-                                                   | users              |
-                                                   | conversations      |
-                                                   | messages           |
-                                                   +-------------------+
+| HTTP | WebSocket |
+|---|---|
+| Client requests, server responds | Server pushes data without a request |
+| Connection closes after each response | Connection stays open (persistent) |
+| One direction per exchange | Bidirectional |
+| Good for: loading pages, REST APIs | Good for: chat, notifications, live data |
+
+---
+
+## Stack
+
+### Backend
+- **Node.js + Express** — REST API
+- **Socket.IO** — WebSocket server
+- **PostgreSQL** — persistent storage
+- **Sequelize** — ORM (models + sync)
+- **JWT + bcrypt** — authentication
+- **Scalar UI** — API documentation
+
+### Mobile
+- **Expo Router** — file-based navigation
+- **Axios + TanStack Query** — REST data fetching
+- **socket.io-client** — real-time connection
+- **AsyncStorage** — local JWT storage
+- **React Context** — auth state
+
+---
+
+## Features
+
+- Register / Login with JWT authentication
+- Session restore on app reboot (token persisted in AsyncStorage)
+- **Client** creates a conversation with a subject → status `en_attente`
+- **Agent** sees pending and ongoing conversations, joins one → status `en_cours`
+- Real-time chat — history loaded via REST, new messages via Socket.IO
+- Typing indicator — shows when the other person is writing
+- Online/offline presence — updates on connect/disconnect
+- Agent closes conversation → client notified in real time, input disabled
+- Route protection — unauthenticated users can't access app screens
+
+---
+
+## File Structure
+Real-time customer support chat application built for **Souq Express**, a Moroccan e-commerce platform.  
+Replaces slow telephone/email support with an instant WhatsApp-style chat experience.
+
+---
+
+## Educational Goal
+
+The core concept of this project is **WebSocket** — specifically how it differs from HTTP:
+
+| HTTP | WebSocket |
+|---|---|
+| Client requests, server responds | Server pushes data without a request |
+| Connection closes after each response | Connection stays open (persistent) |
+| One direction per exchange | Bidirectional |
+| Good for: loading pages, REST APIs | Good for: chat, notifications, live data |
+
+---
+
+## Stack
+
+### Backend
+- **Node.js + Express** — REST API
+- **Socket.IO** — WebSocket server
+- **PostgreSQL** — persistent storage
+- **Sequelize** — ORM (models + sync)
+- **JWT + bcrypt** — authentication
+- **Scalar UI** — API documentation
+
+### Mobile
+- **Expo Router** — file-based navigation
+- **Axios + TanStack Query** — REST data fetching
+- **socket.io-client** — real-time connection
+- **AsyncStorage** — local JWT storage
+- **React Context** — auth state
+
+---
+
+## Features
+
+- Register / Login with JWT authentication
+- Session restore on app reboot (token persisted in AsyncStorage)
+- **Client** creates a conversation with a subject → status `en_attente`
+- **Agent** sees pending and ongoing conversations, joins one → status `en_cours`
+- Real-time chat — history loaded via REST, new messages via Socket.IO
+- Typing indicator — shows when the other person is writing
+- Online/offline presence — updates on connect/disconnect
+- Agent closes conversation → client notified in real time, input disabled
+- Route protection — unauthenticated users can't access app screens
+
+---
+
+## File Structure
+
 ```
-
-
-## Sequelize database layer
-
-Chatbit uses **Sequelize** as its ORM for PostgreSQL. Database models define the tables and relationships, while Sequelize performs parameterized queries internally.
-
-### Database connection
-
-```js
-// config/database.js
-import { Sequelize } from 'sequelize';
-
-export const sequelize = new Sequelize(process.env.DATABASE_URL, {
-  dialect: 'postgres',
-  logging: false
-});
-
-export async function connectDatabase() {
-  try {
-    await sequelize.authenticate();
-    console.log('Database connection established');
-  } catch (error) {
-    console.error('Unable to connect to the database:', error);
-    process.exit(1);
-  }
-}
+ChatBit/
 ```
-
-### Model structure
-
-```text
-server/
-├── config/
-│   └── database.js
-├── models/
-│   ├── User.js
-│   ├── Conversation.js
-│   ├── Message.js
-│   └── index.js
-├── migrations/
-├── seeders/
-└── package.json
-```
-
-### Main models
-
-- `User`: fullname, email, password hash, role and online status.
-- `Conversation`: subject, status, customer, optional agent and closing date.
-- `Message`: content, sender, conversation, read status and creation date.
-
-### Model relationships
-
-```js
-// models/index.js
-import User from './User.js';
-import Conversation from './Conversation.js';
-import Message from './Message.js';
-
-User.hasMany(Conversation, {
-  foreignKey: 'clientId',
-  as: 'clientConversations'
-});
-
-Conversation.belongsTo(User, {
-  foreignKey: 'clientId',
-  as: 'client'
-});
-
-User.hasMany(Conversation, {
-  foreignKey: 'agentId',
-  as: 'agentConversations'
-});
-
-Conversation.belongsTo(User, {
-  foreignKey: 'agentId',
-  as: 'agent'
-});
-
-Conversation.hasMany(Message, {
-  foreignKey: 'conversationId',
-  as: 'messages'
-});
-
-Message.belongsTo(Conversation, {
-  foreignKey: 'conversationId',
-  as: 'conversation'
-});
-
-User.hasMany(Message, {
-  foreignKey: 'senderId',
-  as: 'sentMessages'
-});
-
-Message.belongsTo(User, {
-  foreignKey: 'senderId',
-  as: 'sender'
-});
-
-export { User, Conversation, Message };
-```
-
-Use migrations instead of relying on `sequelize.sync({ alter: true })` in production. Migrations make database changes explicit and reproducible.
-
-## Project structure
-
-```text
-chatbit/
-├── mobile/
-│   ├── app/
-│   ├── components/
-│   ├── hooks/
-│   ├── lib/
-│   ├── services/
-│   └── package.json
-│
+ChatBit/
 ├── backend/
 │   ├── config/
-│   │   └── database.js
+│   │   └── database.js          # Sequelize + PostgreSQL connection
+│   │   └── database.js          # Sequelize + PostgreSQL connection
 │   ├── controllers/
-│   │   ├── auth.controller.js
-│   │   ├── conversations.controller.js
-│   │   └── messages.controller.js
+│   │   ├── auth.controller.js   # register, login
+│   │   ├── conversations.controller.js  # CRUD + close + broadcast
+│   │   └── users.controller.js  # getMe, getAllAgents
+│   │   ├── auth.controller.js   # register, login
+│   │   ├── conversations.controller.js  # CRUD + close + broadcast
+│   │   └── users.controller.js  # getMe, getAllAgents
 │   ├── middlewares/
-│   │   ├── auth.middleware.js
-│   │   └── error.middleware.js
+│   │   ├── auth.middleware.js   # JWT verify → req.user
+│   │   ├── role.middleware.js   # requireRole("agent")
+│   │   └── error.middleware.js  # global error handler
+│   │   ├── auth.middleware.js   # JWT verify → req.user
+│   │   ├── role.middleware.js   # requireRole("agent")
+│   │   └── error.middleware.js  # global error handler
 │   ├── models/
 │   │   ├── User.js
 │   │   ├── Conversation.js
 │   │   ├── Message.js
-│   │   └── index.js
-│   ├── migrations/
-│   ├── seeders/
+│   │   └── index.js             # associations
+│   │   └── index.js             # associations
 │   ├── routes/
 │   │   ├── auth.routes.js
-│   │   ├── users.routes.js
-│   │   └── conversations.routes.js
+│   │   ├── conversations.routes.js
+│   │   └── users.routes.js
+│   │   ├── conversations.routes.js
+│   │   └── users.routes.js
 │   ├── sockets/
-│   │   ├── socket.auth.js
-│   │   └── chat.handlers.js
-│   ├── services/
-│   ├── app.js
-│   ├── server.js
-│   ├── .env.example
-│   ├── .sequelizerc
-│   ├── package.json
-│   └── package-lock.json
+│   │   ├── socket.auth.js       # JWT middleware for Socket.IO
+│   │   └── chat.handlers.js     # all real-time event handlers
+│   ├── docs/
+│   │   └── scalar.yaml          # OpenAPI spec for Scalar UI
+│   ├── app.js                   # Express app setup
+│   ├── server.js                # HTTP + Socket.IO bootstrap
+│   ├── schema.sql               # Database schema (deliverable)
+│   ├── docker-compose.yml       # PostgreSQL container
+│   └── .env                     # environment variables (not committed)
 │
-├── docs/
-│   ├── use-case.puml
-│   ├── class-diagram.puml
-│   └── scalar.yaml
-│
-└── README.md
-```
-## Class diagram
-
-The class diagram presents the main users, business entities, controllers and services of Chatbit.
-
-```mermaid
-classDiagram
-    class User {
-        +int id
-        +string fullName
-        +string email
-        +string passwordHash
-        +Role role
-        +boolean isOnline
-        +datetime createdAt
-        +register()
-        +login()
-        +getProfile()
-        +logout()
-    }
-
-    class Client {
-        +createConversation(subject)
-        +sendMessage(conversationId, content)
-        +viewConversations()
-        +viewMessages(conversationId)
-    }
-
-    class Agent {
-        +viewPendingConversations()
-        +joinConversation(conversationId)
-        +sendMessage(conversationId, content)
-        +closeConversation(conversationId)
-    }
-
-    class Conversation {
-        +int id
-        +string subject
-        +ConversationStatus status
-        +int clientId
-        +int agentId
-        +datetime createdAt
-        +datetime closedAt
-        +create()
-        +assignAgent(agentId)
-        +close()
-        +addMessage(message)
-    }
-
-    class Message {
-        +int id
-        +int conversationId
-        +int senderId
-        +string content
-        +boolean isRead
-        +datetime sentAt
-        +markAsRead()
-    }
-
-    class AuthController {
-        +register(data)
-        +login(email, password)
-    }
-
-    class UserController {
-        +getMe(userId)
-    }
-
-    class ConversationController {
-        +getConversations(userId)
-        +createConversation(userId, subject)
-        +getMessages(conversationId, page)
-        +closeConversation(conversationId, agentId)
-    }
-
-    class AuthService {
-        +hashPassword(password)
-        +comparePassword(password, hash)
-        +generateToken(user)
-        +verifyToken(token)
-    }
-
-    class SocketService {
-        +authenticateSocket(socket)
-        +joinConversation(socket, conversationId)
-        +leaveConversation(socket, conversationId)
-        +sendMessage(socket, data)
-        +startTyping(socket, conversationId)
-        +stopTyping(socket, conversationId)
-        +updatePresence(socket)
-    }
-
-    class Sequelize {
-        +authenticate()
-        +sync()
-    }
-
-    class Role {
-        <<enumeration>>
-        CLIENT
-        AGENT
-    }
-
-    class ConversationStatus {
-        <<enumeration>>
-        EN_ATTENTE
-        EN_COURS
-        FERMEE
-    }
-
-    User <|-- Client
-    User <|-- Agent
-
-    User --> Role
-    Conversation --> ConversationStatus
-
-    Client "1" --> "0..*" Conversation : creates
-    Agent "0..1" --> "0..*" Conversation : handles
-
-    Conversation "1" *-- "0..*" Message : contains
-    User "1" --> "0..*" Message : sends
-
-    AuthController --> AuthService : uses
-    AuthController --> Sequelize : accesses
-    UserController --> Sequelize : accesses
-    ConversationController --> Sequelize : accesses
-    ConversationController --> SocketService : notifies
-    SocketService --> Sequelize : persists
+└── mobile/
+    ├── app/
+    │   ├── _layout.jsx          # Root layout + QueryClient + auth protection
+    │   ├── (auth)/
+    │   │   ├── _layout.jsx
+    │   │   ├── login.jsx
+    │   │   └── register.jsx
+    │   └── (app)/
+    │       ├── _layout.jsx
+    │       ├── index.jsx         # Conversations list
+    │       ├── profile.jsx
+    │       ├── new-conversation.jsx
+    │       └── chat/
+    │           └── [id].jsx      # Real-time chat screen
+    ├── api/
+    │   ├── axios.js              # Axios instance + interceptors
+    │   └── socket.js             # Socket.IO client + connect/disconnect
+    ├── asyncstorg/
+    │   └── storage.js            # AsyncStorage helpers (token)
+    ├── components/
+    │   ├── chat/
+    │   │   ├── ChatHeader.jsx
+    │   │   ├── MessageBubble.jsx
+    │   │   ├── MessageInput.jsx
+    │   │   └── TypingIndicator.jsx
+    │   ├── conversations/
+    │   │   ├── ConversationCard.jsx
+    │   │   ├── EmptyConversations.jsx
+    │   │   └── StatusBadge.jsx
+    │   └── ui/
+    │       ├── Avatar.jsx
+    │       ├── Button.jsx
+    │       ├── ErrorMessage.jsx
+    │       ├── Input.jsx
+    │       └── Loading.jsx
+    ├── constants/
+    │   └── colors.js
+    ├── context/
+    │   └── AuthContext.jsx       # Auth state + session restore
+    └── types/
+        ├── auth.js
+        ├── conversation.js
+        ├── message.js
+        └── user.js
 ```
 
+---
 
-## Features
+## Data Model
 
-### Customer
+### `schema.sql`
 
-- Register and log in.
-- View the authenticated profile.
-- Create a conversation with a subject.
-- View conversation history.
-- Send and receive messages in real time.
-- See typing indicators and online presence.
-- Receive a notification when an agent closes a conversation.
+```sql
+-- USERS
+CREATE TYPE enum_users_role AS ENUM ('client', 'agent');
 
-### Agent
+CREATE TABLE users (
+  id              SERIAL          PRIMARY KEY,
+  fullname        VARCHAR(255)    NOT NULL,
+  email           VARCHAR(255)    NOT NULL UNIQUE,
+  "passwordHash"  VARCHAR(255)    NOT NULL,
+  role            enum_users_role NOT NULL,
+  "isOnline"      BOOLEAN         NOT NULL DEFAULT FALSE,
+  "createdAt"     TIMESTAMPTZ     NOT NULL DEFAULT NOW(),
+  "updatedAt"     TIMESTAMPTZ     NOT NULL DEFAULT NOW()
+);
 
-- Register and log in.
-- View pending and ongoing conversations.
-- Take responsibility for a conversation.
-- View conversation history.
-- Send and receive messages in real time.
-- Close a conversation.
+-- CONVERSATIONS
+CREATE TYPE enum_conversations_status AS ENUM ('en_attente', 'en_cours', 'fermee');
 
-## Technologies
+CREATE TABLE conversations (
+  id          SERIAL                    PRIMARY KEY,
+  subject     VARCHAR(255)              NOT NULL,
+  status      enum_conversations_status NOT NULL DEFAULT 'en_attente',
+  "clientId"  INTEGER                   NOT NULL REFERENCES users(id),
+  "agentId"   INTEGER                            REFERENCES users(id),
+  "closedAt"  TIMESTAMPTZ,
+  "createdAt" TIMESTAMPTZ               NOT NULL DEFAULT NOW(),
+  "updatedAt" TIMESTAMPTZ               NOT NULL DEFAULT NOW()
+);
 
-### Mobile
-
-- Expo
-- Expo Router
-- Axios
-- TanStack Query
-- socket.io-client
-
-### Backend
-
-- Node.js with ES Modules
-- Express
-- Socket.IO
-- PostgreSQL
-- Sequelize
-- JWT
-- bcrypt
-- Scalar UI
-
-## Conversation statuses
-
-| Status | Meaning |
-|---|---|
-| `en_attente` | Waiting for an agent. |
-| `en_cours` | Assigned to an agent and open. |
-| `fermee` | Closed; new messages are forbidden. |
-
-## REST API
-
-Protected routes require:
-
-```http
-Authorization: Bearer <JWT_TOKEN>
+-- MESSAGES
+CREATE TABLE messages (
+  id                SERIAL      PRIMARY KEY,
+  "conversationId"  INTEGER     NOT NULL REFERENCES conversations(id),
+  "senderId"        INTEGER     NOT NULL REFERENCES users(id),
+  content           TEXT        NOT NULL,
+  "createdAt"       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  "updatedAt"       TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 ```
 
-| Method | Endpoint | Access | Description |
-|---|---|---|---|
-| `POST` | `/api/auth/register` | Public | Register a user. |
-| `POST` | `/api/auth/login` | Public | Authenticate and return a JWT. |
-| `GET` | `/api/users/me` | JWT | Return the current user. |
-| `GET` | `/api/conversations` | JWT | List authorized conversations. |
-| `POST` | `/api/conversations` | Client | Create a conversation. |
-| `GET` | `/api/conversations/:id/messages` | JWT | Return paginated messages. |
-| `PATCH` | `/api/conversations/:id/close` | Agent | Close a conversation. |
+---
 
-The REST API is documented with Scalar UI using `docs/scalar.yaml`.
+## Use Case Diagram
 
-## Socket.IO events
+```
+                        ChatBit — Use Cases
+┌─────────────────────────────────────────────────────────────────┐
+│                                                                 │
+│   ┌─────────┐                              ┌─────────┐         │
+│   │         │── Register ─────────────────▶│         │         │
+│   │         │── Login ────────────────────▶│         │         │
+│   │ CLIENT  │── Create Conversation ───────▶  SYSTEM │         │
+│   │         │── Send Message ─────────────▶│         │         │
+│   │         │── See Typing Indicator ──────▶│         │         │
+│   │         │── See Online Presence ───────▶│         │         │
+│   │         │── Receive Close Notification ▶│         │         │
+│   └─────────┘                              │         │         │
+│                                            │         │         │
+│   ┌─────────┐                              │         │         │
+│   │         │── Register ─────────────────▶│         │         │
+│   │         │── Login ────────────────────▶│         │         │
+│   │  AGENT  │── See Pending Conversations ▶│         │         │
+│   │         │── Join Conversation ─────────▶│         │         │
+│   │         │── Send Message ─────────────▶│         │         │
+│   │         │── Close Conversation ────────▶│         │         │
+│   └─────────┘                              └─────────┘         │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
 
-### Client to server
+---
+
+## Class Diagram
+
+```
+<img width="783" height="1193" alt="image" src="https://github.com/user-attachments/assets/9e5fd934-a6b0-450f-8039-11ab0896b7f3" />
+
+```
+
+---
+
+## ERD (Entity Relationship Diagram)
+
+```
+users                    conversations              messages
+─────────────────        ──────────────────         ──────────────────
+PK  id                   PK  id                     PK  id
+    fullname             FK  clientId ──────────▶ users.id
+    email                FK  agentId  ──────────▶ users.id  FK  conversationId ──▶ conversations.id
+    passwordHash             subject             FK  senderId ────────▶ users.id
+    role                     status                  content
+    isOnline                 closedAt                createdAt
+    createdAt                createdAt               updatedAt
+    updatedAt                updatedAt
+```
+
+---
+
+## REST Endpoints
+
+| Method | Route | Auth | Role | Description |
+|---|---|---|---|---|
+| POST | `/api/auth/register` | ❌ | any | Create account |
+| POST | `/api/auth/login` | ❌ | any | Login, get JWT |
+| GET | `/api/users/me` | ✅ | any | Get current user |
+| GET | `/api/conversations` | ✅ | any | List conversations |
+| POST | `/api/conversations` | ✅ | client | Create conversation |
+| GET | `/api/conversations/:id/messages` | ✅ | any | Message history (paginated) |
+| PATCH | `/api/conversations/:id/close` | ✅ | agent | Close conversation |
+
+API docs available at `http://localhost:3000/docs` (Scalar UI)
+
+---
+
+## WebSocket Events
+
+### Client → Server
 
 | Event | Payload | Description |
 |---|---|---|
-| `conversation:join` | `{ conversationId }` | Join an authorized room. |
-| `conversation:leave` | `{ conversationId }` | Leave a room. |
-| `message:send` | `{ conversationId, content }` | Send a message. |
-| `typing:start` | `{ conversationId }` | Start typing indicator. |
-| `typing:stop` | `{ conversationId }` | Stop typing indicator. |
+| `conversation:join` | `conversationId` | Join a room |
+| `conversation:leave` | `conversationId` | Leave a room |
+| `message:send` | `{ conversationId, content }` | Send a message |
+| `typing:start` | `{ conversationId }` | Started typing |
+| `typing:stop` | `{ conversationId }` | Stopped typing |
 
-### Server to client
-
-| Event | Description |
-|---|---|
-| `message:new` | A saved message was broadcast. |
-| `typing:update` | Typing status changed. |
-| `presence:update` | Online/offline status changed. |
-| `conversation:updated` | Conversation status or assignment changed. |
-| `error` | An operation was rejected. |
-
-## Environment variables
-
-Create `server/.env`:
-
-```env
-PORT=3000
-DATABASE_URL=postgresql://postgres:password@localhost:5432/chatbit
-JWT_SECRET=replace_with_a_long_random_secret
-CLIENT_URL=http://localhost:8081
+### Server → Client
+│   │   ├── socket.auth.js       # JWT middleware for Socket.IO
+│   │   └── chat.handlers.js     # all real-time event handlers
+│   ├── docs/
+│   │   └── scalar.yaml          # OpenAPI spec for Scalar UI
+│   ├── app.js                   # Express app setup
+│   ├── server.js                # HTTP + Socket.IO bootstrap
+│   ├── schema.sql               # Database schema (deliverable)
+│   ├── docker-compose.yml       # PostgreSQL container
+│   └── .env                     # environment variables (not committed)
+│
+└── mobile/
+    ├── app/
+    │   ├── _layout.jsx          # Root layout + QueryClient + auth protection
+    │   ├── (auth)/
+    │   │   ├── _layout.jsx
+    │   │   ├── login.jsx
+    │   │   └── register.jsx
+    │   └── (app)/
+    │       ├── _layout.jsx
+    │       ├── index.jsx         # Conversations list
+    │       ├── profile.jsx
+    │       ├── new-conversation.jsx
+    │       └── chat/
+    │           └── [id].jsx      # Real-time chat screen
+    ├── api/
+    │   ├── axios.js              # Axios instance + interceptors
+    │   └── socket.js             # Socket.IO client + connect/disconnect
+    ├── asyncstorg/
+    │   └── storage.js            # AsyncStorage helpers (token)
+    ├── components/
+    │   ├── chat/
+    │   │   ├── ChatHeader.jsx
+    │   │   ├── MessageBubble.jsx
+    │   │   ├── MessageInput.jsx
+    │   │   └── TypingIndicator.jsx
+    │   ├── conversations/
+    │   │   ├── ConversationCard.jsx
+    │   │   ├── EmptyConversations.jsx
+    │   │   └── StatusBadge.jsx
+    │   └── ui/
+    │       ├── Avatar.jsx
+    │       ├── Button.jsx
+    │       ├── ErrorMessage.jsx
+    │       ├── Input.jsx
+    │       └── Loading.jsx
+    ├── constants/
+    │   └── colors.js
+    ├── context/
+    │   └── AuthContext.jsx       # Auth state + session restore
+    └── types/
+        ├── auth.js
+        ├── conversation.js
+        ├── message.js
+        └── user.js
 ```
 
-Never commit the real `.env` file or JWT secret to Git.
+---
 
-## Installation
+## Data Model
 
-### 1. Install dependencies
+### `schema.sql`
 
-```bash
-cd server
-npm install express socket.io sequelize pg pg-hstore bcrypt jsonwebtoken dotenv
-npm install --save-dev nodemon sequelize-cli
+```sql
+-- USERS
+CREATE TYPE enum_users_role AS ENUM ('client', 'agent');
+
+CREATE TABLE users (
+  id              SERIAL          PRIMARY KEY,
+  fullname        VARCHAR(255)    NOT NULL,
+  email           VARCHAR(255)    NOT NULL UNIQUE,
+  "passwordHash"  VARCHAR(255)    NOT NULL,
+  role            enum_users_role NOT NULL,
+  "isOnline"      BOOLEAN         NOT NULL DEFAULT FALSE,
+  "createdAt"     TIMESTAMPTZ     NOT NULL DEFAULT NOW(),
+  "updatedAt"     TIMESTAMPTZ     NOT NULL DEFAULT NOW()
+);
+
+-- CONVERSATIONS
+CREATE TYPE enum_conversations_status AS ENUM ('en_attente', 'en_cours', 'fermee');
+
+CREATE TABLE conversations (
+  id          SERIAL                    PRIMARY KEY,
+  subject     VARCHAR(255)              NOT NULL,
+  status      enum_conversations_status NOT NULL DEFAULT 'en_attente',
+  "clientId"  INTEGER                   NOT NULL REFERENCES users(id),
+  "agentId"   INTEGER                            REFERENCES users(id),
+  "closedAt"  TIMESTAMPTZ,
+  "createdAt" TIMESTAMPTZ               NOT NULL DEFAULT NOW(),
+  "updatedAt" TIMESTAMPTZ               NOT NULL DEFAULT NOW()
+);
+
+-- MESSAGES
+CREATE TABLE messages (
+  id                SERIAL      PRIMARY KEY,
+  "conversationId"  INTEGER     NOT NULL REFERENCES conversations(id),
+  "senderId"        INTEGER     NOT NULL REFERENCES users(id),
+  content           TEXT        NOT NULL,
+  "createdAt"       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  "updatedAt"       TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 ```
 
-### 2. Configure the database
+---
 
-Create the PostgreSQL database, configure `DATABASE_URL`, then run your Sequelize migrations:
+## Use Case Diagram
 
-```bash
-npx sequelize-cli db:migrate
+```
+                        ChatBit — Use Cases
+┌─────────────────────────────────────────────────────────────────┐
+│                                                                 │
+│   ┌─────────┐                              ┌─────────┐         │
+│   │         │── Register ─────────────────▶│         │         │
+│   │         │── Login ────────────────────▶│         │         │
+│   │ CLIENT  │── Create Conversation ───────▶  SYSTEM │         │
+│   │         │── Send Message ─────────────▶│         │         │
+│   │         │── See Typing Indicator ──────▶│         │         │
+│   │         │── See Online Presence ───────▶│         │         │
+│   │         │── Receive Close Notification ▶│         │         │
+│   └─────────┘                              │         │         │
+│                                            │         │         │
+│   ┌─────────┐                              │         │         │
+│   │         │── Register ─────────────────▶│         │         │
+│   │         │── Login ────────────────────▶│         │         │
+│   │  AGENT  │── See Pending Conversations ▶│         │         │
+│   │         │── Join Conversation ─────────▶│         │         │
+│   │         │── Send Message ─────────────▶│         │         │
+│   │         │── Close Conversation ────────▶│         │         │
+│   └─────────┘                              └─────────┘         │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-To undo the latest migration:
+---
 
-```bash
-npx sequelize-cli db:migrate:undo
+## Class Diagram
+
+
+<img width="783" height="1193" alt="image" src="https://github.com/user-attachments/assets/9e5fd934-a6b0-450f-8039-11ab0896b7f3" />
+
+
+
+---
+
+## ERD (Entity Relationship Diagram)
+
+```
+users                    conversations              messages
+─────────────────        ──────────────────         ──────────────────
+PK  id                   PK  id                     PK  id
+    fullname             FK  clientId ──────────▶ users.id
+    email                FK  agentId  ──────────▶ users.id  FK  conversationId ──▶ conversations.id
+    passwordHash             subject             FK  senderId ────────▶ users.id
+    role                     status                  content
+    isOnline                 closedAt                createdAt
+    createdAt                createdAt               updatedAt
+    updatedAt                updatedAt
 ```
 
-### 3. Run the server
+---
+
+## REST Endpoints
+
+| Method | Route | Auth | Role | Description |
+|---|---|---|---|---|
+| POST | `/api/auth/register` | ❌ | any | Create account |
+| POST | `/api/auth/login` | ❌ | any | Login, get JWT |
+| GET | `/api/users/me` | ✅ | any | Get current user |
+| GET | `/api/conversations` | ✅ | any | List conversations |
+| POST | `/api/conversations` | ✅ | client | Create conversation |
+| GET | `/api/conversations/:id/messages` | ✅ | any | Message history (paginated) |
+| PATCH | `/api/conversations/:id/close` | ✅ | agent | Close conversation |
+
+API docs available at `http://localhost:3000/docs` (Scalar UI)
+
+---
+
+## WebSocket Events
+
+### Client → Server
+
+| Event | Payload | Description |
+|---|---|---|
+| `conversation:join` | `conversationId` | Join a room |
+| `conversation:leave` | `conversationId` | Leave a room |
+| `message:send` | `{ conversationId, content }` | Send a message |
+| `typing:start` | `{ conversationId }` | Started typing |
+| `typing:stop` | `{ conversationId }` | Stopped typing |
+
+### Server → Client
+
+| Event | Payload | Description |
+|---|---|---|
+| `message:new` | `{ id, conversationId, senderId, content, createdAt }` | New message broadcast |
+| `typing:update` | `{ userId, conversationId, isTyping }` | Typing status |
+| `presence:update` | `{ userId, isOnline }` | Online/offline status |
+| `conversation:updated` | `{ conversationId, status, agentId? }` | Status changed |
+| `error` | `{ code, message }` | Server-side error |
+
+---
+
+## Key Server Rules
+
+- Socket connection **refused** without valid JWT — middleware `io.use(socketAuth)`
+- `userId` is always taken from the verified JWT — **never trusted from the client**
+- A user can only join rooms where they are the assigned client or agent
+- `message:send` on a closed (`fermee`) conversation → `error` event
+- **INSERT in database before broadcast** — persistence before real-time
+
+---
+
+## message:send Flow
+
+```
+Client emits message:send
+        ↓
+Verify JWT (already done at connection — socket.user is trusted)
+        ↓
+Find conversation in PostgreSQL
+        ↓
+Check user is a participant (clientId or agentId)
+        ↓
+Check conversation is not "fermee"
+        ↓
+Message.create() — INSERT into PostgreSQL
+        ↓
+io.to("conversation:X").emit("message:new") — broadcast to room
+        ↓
+Both client and agent receive the message simultaneously
+```
+
+---
+
+## Conversation Status Flow
+
+```
+[Client creates conversation]
+        ↓
+   en_attente  ←── waiting for an agent
+        ↓
+[Agent joins via conversation:join]
+        ↓
+    en_cours   ←── active chat
+        ↓
+[Agent calls PATCH /conversations/:id/close]
+        ↓
+     fermee    ←── closed, no more messages allowed
+        ↓
+[Server emits conversation:updated to room]
+        ↓
+[Client UI disables MessageInput]
+```
+
+---
+
+## Setup & Running
+
+### Prerequisites
+- Node.js 18+
+- Docker (for PostgreSQL)
+- Expo Go app on your phone
+
+### Backend
+| `message:new` | `{ id, conversationId, senderId, content, createdAt }` | New message broadcast |
+| `typing:update` | `{ userId, conversationId, isTyping }` | Typing status |
+| `presence:update` | `{ userId, isOnline }` | Online/offline status |
+| `conversation:updated` | `{ conversationId, status, agentId? }` | Status changed |
+| `error` | `{ code, message }` | Server-side error |
+
+---
+
+## Key Server Rules
+
+- Socket connection **refused** without valid JWT — middleware `io.use(socketAuth)`
+- `userId` is always taken from the verified JWT — **never trusted from the client**
+- A user can only join rooms where they are the assigned client or agent
+- `message:send` on a closed (`fermee`) conversation → `error` event
+- **INSERT in database before broadcast** — persistence before real-time
+
+---
+
+## message:send Flow
+
+```
+Client emits message:send
+        ↓
+Verify JWT (already done at connection — socket.user is trusted)
+        ↓
+Find conversation in PostgreSQL
+        ↓
+Check user is a participant (clientId or agentId)
+        ↓
+Check conversation is not "fermee"
+        ↓
+Message.create() — INSERT into PostgreSQL
+        ↓
+io.to("conversation:X").emit("message:new") — broadcast to room
+        ↓
+Both client and agent receive the message simultaneously
+```
+
+---
+
+## Conversation Status Flow
+
+```
+[Client creates conversation]
+        ↓
+   en_attente  ←── waiting for an agent
+        ↓
+[Agent joins via conversation:join]
+        ↓
+    en_cours   ←── active chat
+        ↓
+[Agent calls PATCH /conversations/:id/close]
+        ↓
+     fermee    ←── closed, no more messages allowed
+        ↓
+[Server emits conversation:updated to room]
+        ↓
+[Client UI disables MessageInput]
+```
+
+---
+
+## Setup & Running
+
+### Prerequisites
+- Node.js 18+
+- Docker (for PostgreSQL)
+- Expo Go app on your phone
+
+### Backend
 
 ```bash
+cd backend
+
+# Start PostgreSQL
+docker-compose up -d
+
+# Install dependencies
+npm install
+
+# Create .env file
+cp .env.example .env
+# Edit .env with your values
+
+# Start the server
+cd backend
+
+# Start PostgreSQL
+docker-compose up -d
+
+# Install dependencies
+npm install
+
+# Create .env file
+cp .env.example .env
+# Edit .env with your values
+
+# Start the server
 npm run dev
 ```
 
-The `dev` script runs `server.js`, which imports `app.js`, connects to PostgreSQL and starts Express with Socket.IO:
+Server runs at `http://localhost:3000`  
+API docs at `http://localhost:3000/docs`
+Server runs at `http://localhost:3000`  
+API docs at `http://localhost:3000/docs`
 
-```json
-{
-  "scripts": {
-    "dev": "nodemon server.js",
-    "start": "node server.js",
-    "db:migrate": "sequelize-cli db:migrate",
-    "db:migrate:undo": "sequelize-cli db:migrate:undo"
-  }
-}
-```
-
-### 4. Run the mobile application
-
-Open another terminal:
+### Mobile
+### Mobile
 
 ```bash
 cd mobile
+
+# Install dependencies
+
+# Install dependencies
 npm install
-npx expo start
+
+# Update the IP in api/axios.js and api/socket.js
+# Replace 192.168.1.108 with your machine's local IP
+
+# Start Expo
+npm start
+
+# Scan the QR code with Expo Go
 ```
 
-For a physical phone, configure the mobile API URL with your computer's local network IP address instead of `localhost`.
+### Environment Variables
 
-## Development workflow
 
-1. Configure PostgreSQL and the Sequelize environment.
-2. Create and run migrations.
-3. Define the User, Conversation and Message models.
-4. Define model associations in `models/index.js`.
-5. Implement registration and login with bcrypt and JWT.
-6. Add JWT protection to REST and Socket.IO connections.
-7. Implement conversation creation and assignment.
-8. Implement REST message history with Sequelize queries.
-9. Implement message persistence and Socket.IO broadcasting.
-10. Add typing, presence, reconnection and conversation closing.
+---
 
-## Documentation files
+## Authentication Flow
 
-- `docs/use-case.puml` — actors and use cases.
-- `docs/class-diagram.puml` — main application classes and relationships.
-- `docs/scalar.yaml` — OpenAPI specification for Scalar UI.
+```
+Register → bcrypt hashes password → stored in DB
+Login    → bcrypt compares → JWT signed → returned to client
+           ↓
+Mobile saves JWT to AsyncStorage
+           ↓
+Axios interceptor reads token → adds Authorization header to every request
+           ↓
+Socket connects → sends token in handshake auth → socketAuth verifies it
+           ↓
+App restarts → getToken() finds JWT → getMe() restores session → socket reconnects
+```
 
-## License
+---
 
-This project is developed for educational purposes.
+## Project Context
+
+**Souq Express** is a growing Moroccan e-commerce platform that previously managed customer support by telephone and email — slow, no centralized history, no real-time communication.
+
+**ChatBit** solves this by providing:
+- A mobile interface for customers to open support conversations
+- A real-time agent dashboard to handle multiple conversations
+- Instant message delivery via WebSocket
+- Full message history persisted in PostgreSQL
+- Typing indicators and presence for a WhatsApp-like experience
+
+---
+
+*ChatBit — Souq Express Customer Support · Built with Expo + Node.js + Socket.IO + PostgreSQL*
+
+# Update the IP in api/axios.js and api/socket.js
+# Replace 192.168.1.108 with your machine's local IP
+
+# Start Expo
+npm start
+
+# Scan the QR code with Expo Go
+```
+
+---
+
+## Authentication Flow
+
+```
+Register → bcrypt hashes password → stored in DB
+Login    → bcrypt compares → JWT signed → returned to client
+           ↓
+Mobile saves JWT to AsyncStorage
+           ↓
+Axios interceptor reads token → adds Authorization header to every request
+           ↓
+Socket connects → sends token in handshake auth → socketAuth verifies it
+           ↓
+App restarts → getToken() finds JWT → getMe() restores session → socket reconnects
+```
+
+---
+
+## Project Context
+
+**Souq Express** is a growing Moroccan e-commerce platform that previously managed customer support by telephone and email — slow, no centralized history, no real-time communication.
+
+**ChatBit** solves this by providing:
+- A mobile interface for customers to open support conversations
+- A real-time agent dashboard to handle multiple conversations
+- Instant message delivery via WebSocket
+- Full message history persisted in PostgreSQL
+- Typing indicators and presence for a WhatsApp-like experience
+
+---
+
+*ChatBit — Souq Express Customer Support · Built with Expo + Node.js + Socket.IO + PostgreSQL*
