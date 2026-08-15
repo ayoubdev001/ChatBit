@@ -20,7 +20,11 @@ export async function register(req, res, next) {
     if (existing) {
       return res.status(409).json({ error: "Email already in use" });
     }
-
+    
+    //Password must be at least 4 characters
+    if (password.length < 4) {
+  return res.status(400).json({ error: "Password must be at least 4 characters" });
+}
     // hash the password before storing
     const passwordHash = await bcrypt.hash(password, 10);
 

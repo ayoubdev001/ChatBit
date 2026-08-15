@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import { readFileSync } from "fs";
 import { apiReference } from "@scalar/express-api-reference";
 
@@ -9,26 +10,18 @@ import { errorMiddleware } from "./middlewares/error.middleware.js";
 
 const app = express();
 
+app.use(cors());
 app.use(express.json());
 
-// ---- Health check ----
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
-// ---- Scalar API docs ----
 const openApiSpec = JSON.parse(
-  readFileSync(new URL("./docs/scalar.yaml", import.meta.url))
+  readFileSync(new URL("./docs/scalar.yaml", import.meta.url), "utf8")
 );
-app.use(
-  "/docs",
-  apiReference({
-    spec: { content: openApiSpec },
-  })
-);
+app.use("/docs", apiReference({ spec: { content: openApiSpec } }));
 
-
-// ---- Routes ----
 app.use("/api/auth", authRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/conversations", conversationsRoutes);

@@ -22,7 +22,7 @@ export async function createConversation(req, res, next) {
   }
 }
 
-                                                   // get /api/conversations - what clint or agent see in deffrent
+                                                 // get /api/conversations - what clint or agent see in deffrent
 
 export async function getConversations(req, res, next) {
   try {
@@ -124,8 +124,18 @@ export async function closeConversation(req, res, next) {
     conversation.closedAt = new Date();
     await conversation.save();
 
-    // TODO: broadcast conversation:updated via Socket.IO once sockets are built,
+    //broadcast conversation:updated via Socket.IO once sockets are built,
     // so the client is notified in real time and can no longer send messages
+       const io = req.app.get("io");
+    if (io) {
+      io.to(`conversation:${id}`).emit("conversation:updated", {
+        conversationId: Number(id),
+        status: "fermee",
+        closedAt: conversation.closedAt,
+      });
+    }
+
+
 
     res.json(conversation);
   } catch (err) {
