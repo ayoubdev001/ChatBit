@@ -8,19 +8,12 @@ import {
 } from "react-native";
 import { COLORS } from "../../constants/colors";
 
-interface MessageInputProps {
-  value: string;
-  onChangeText: (text: string) => void;
-  onSend: () => void;
-  disabled?: boolean;
-}
-
-export default function MessageInput({
-  value,
-  onChangeText,
-  onSend,
-  disabled = false,
-}: MessageInputProps) {
+// value — current text in the input
+// onChangeText — called every time the user types
+// onSend — called when the send button is pressed
+// disabled — true when the conversation is closed, blocks typing and sending
+export default function MessageInput({ value, onChangeText, onSend, disabled = false }) {
+  // Can only send if there is text AND the conversation is not closed
   const canSend = value.trim().length > 0 && !disabled;
 
   return (
@@ -37,6 +30,7 @@ export default function MessageInput({
         style={styles.input}
         multiline
         maxLength={1000}
+        // Prevent typing when conversation is closed
         editable={!disabled}
       />
 
@@ -45,6 +39,7 @@ export default function MessageInput({
         disabled={!canSend}
         style={[
           styles.sendButton,
+          // Dim the button when there is nothing to send
           !canSend && styles.sendButtonDisabled,
         ]}
       >

@@ -3,116 +3,111 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { COLORS } from "../../constants/colors";
 import StatusBadge from "./StatusBadge";
 
-interface ConversationCardProps {
-    subject: string;
-    message: string;
-    time: string;
-    status: "en_attente" | "en_cours" | "fermee";
-    onPress: () => void;
-}
+// subject — the conversation topic
+// message — the last message preview shown under the subject
+// time — formatted time string e.g. "10:42" or "Hier"
+// status — "en_attente" | "en_cours" | "fermee"
+// onPress — called when the card is tapped, navigates to the chat screen
+export default function ConversationCard({ subject, message, time, status, onPress }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.card,
+        pressed && styles.pressed,
+      ]}
+    >
+      {/* Avatar — shows the first letter of support */}
+      <View style={styles.avatar}>
+        <Text style={styles.avatarText}>S</Text>
+      </View>
 
-export default function ConversationCard({
-    subject,
-    message,
-    time,
-    status,
-    onPress,
-}: ConversationCardProps) {
-    return (
-        <Pressable
-            onPress={onPress}
-            style={({ pressed }) => [
-                styles.card,
-                pressed && styles.pressed,
-            ]}
+      <View style={styles.content}>
+        {/* Top row — subject on the left, time on the right */}
+        <View style={styles.topRow}>
+          <Text
+            style={styles.subject}
+            numberOfLines={1}
+          >
+            {subject}
+          </Text>
+
+          <Text style={styles.time}>{time}</Text>
+        </View>
+
+        {/* Last message preview — cut to one line */}
+        <Text
+          style={styles.message}
+          numberOfLines={1}
         >
-            <View style={styles.avatar}>
-                <Text style={styles.avatarText}>S</Text>
-            </View>
+          {message}
+        </Text>
 
-            <View style={styles.content}>
-                <View style={styles.topRow}>
-                    <Text
-                        style={styles.subject}
-                        numberOfLines={1}
-                    >
-                        {subject}
-                    </Text>
-
-                    <Text style={styles.time}>{time}</Text>
-                </View>
-
-                <Text
-                    style={styles.message}
-                    numberOfLines={1}
-                >
-                    {message}
-                </Text>
-
-                <StatusBadge status={status} />
-            </View>
-        </Pressable>
-    );
+        {/* Colored dot + label showing conversation status */}
+        <StatusBadge status={status} />
+      </View>
+    </Pressable>
+  );
 }
 
 const styles = StyleSheet.create({
-    card: {
-        flexDirection: "row",
-        backgroundColor: COLORS.white,
-        borderRadius: 18,
-        padding: 14,
-        marginBottom: 12,
-        borderWidth: 1,
-        borderColor: COLORS.border,
-    },
+  card: {
+    flexDirection: "row",
+    backgroundColor: COLORS.white,
+    borderRadius: 18,
+    padding: 14,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
 
-    pressed: {
-        opacity: 0.75,
-    },
+  pressed: {
+    opacity: 0.75,
+  },
 
-    avatar: {
-        width: 48,
-        height: 48,
-        borderRadius: 16,
-        backgroundColor: "#E9D8F0",
-        alignItems: "center",
-        justifyContent: "center",
-        marginRight: 12,
-    },
+  avatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: "#E9D8F0",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
 
-    avatarText: {
-        color: COLORS.border,
-        fontSize: 18,
-        fontWeight: "800",
-    },
+  avatarText: {
+    color: COLORS.border,
+    fontSize: 18,
+    fontWeight: "800",
+  },
 
-    content: {
-        flex: 1,
-    },
+  content: {
+    flex: 1,
+  },
 
-    topRow: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-    },
+  topRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
 
-    subject: {
-        flex: 1,
-        color: COLORS.text,
-        fontSize: 14,
-        fontWeight: "700",
-        marginRight: 8,
-    },
+  subject: {
+    flex: 1,
+    color: COLORS.text,
+    fontSize: 14,
+    fontWeight: "700",
+    marginRight: 8,
+  },
 
-    time: {
-        color: COLORS.textSecondary,
-        fontSize: 10,
-    },
+  time: {
+    color: COLORS.textSecondary,
+    fontSize: 10,
+  },
 
-    message: {
-        color: COLORS.textSecondary,
-        fontSize: 12,
-        marginTop: 5,
-        marginBottom: 8,
-    },
+  message: {
+    color: COLORS.textSecondary,
+    fontSize: 12,
+    marginTop: 5,
+    marginBottom: 8,
+  },
 });

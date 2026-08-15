@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Text,
   View,
+  Pressable
 } from "react-native";
 import { router } from "expo-router";
 
@@ -15,49 +16,86 @@ import { COLORS } from "../../constants/colors";
 import { useAuth } from "../../context/AuthContext";
 
 export default function LoginScreen() {
+  // --- Form State ---
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { login, loading, error } = useAuth();
+  // controls whether the password is visible or hidden
+  const [showPassword, setShowPassword] = useState(false);
+  // --- Local Loading State ---
+  // Keeps the login screen mounted and shows loading spinner inside the button
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [localError, setLocalError] = useState("");
 
+  //  Auth Context Hooks
+  const { login, error: contextError } = useAuth();
+
+  // --- Handlers ---
   const handleLogin = async () => {
-    await login({ email, password });
+    // Basic field validation before submission
+    if (!email.trim() || !password.trim()) {
+      setLocalError("Please fill in both email and password.");
+      return;
+    }
+
+    try {
+      setLocalError("");
+      setIsSubmitting(true); // Start local button loading spinner
+
+      await login({ email, password });
+      // Redirect is handled automatically by RootLayout once token is saved
+    } catch (err) {
+      setLocalError(
+        err?.response?.data?.message ||
+          "Failed to log in. Please check your credentials.",
+      );
+    } finally {
+      setIsSubmitting(false); // Stop local button loading spinner
+    }
   };
 
   const handleRegister = () => {
     router.push("/(auth)/register");
   };
 
+  // Determine active error message (local validation or server context)
+  const displayError = localError || contextError;
+
   return (
+    // KeyboardAvoidingView ensures the view adjusts when the keyboard pops up.
+    // iOS works best with "padding", Android works best with "height" or relying on window inset handling.
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior={Platform.OS === "android" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "android" ? 0 : 20}
     >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
+        // Allows scrolling when keyboard is open and dismisses keyboard when tapping outside inputs
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* logo */}
+        {/* Logo Section */}
         <View style={styles.logoContainer}>
           <View style={styles.logo}>
             <Text style={styles.logoIcon}>▰</Text>
           </View>
         </View>
 
-        {/* header */}
-        <Text style={styles.title}>Bienvenue sur</Text>
-
+        {/* Header / Branding */}
+        <Text style={styles.title}>Welcome to</Text>
         <Text style={styles.brand}>ChatBit</Text>
+        <Text style={styles.subtitle}>Your support, simple and instant.</Text>
 
-        <Text style={styles.subtitle}>
-          Votre assistance, simple et instantanée.
-        </Text>
-
-        {/* form */}
+        {/* Form Inputs */}
         <View style={styles.form}>
+          {/* Display Errors */}
+          {displayError ? (
+            <Text style={styles.error}>{displayError}</Text>
+          ) : null}
+
           <Input
-            label="Adresse e-mail"
-            placeholder="ikram@example.com"
+            label="Email Address"
+            placeholder="example@domain.com"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -65,30 +103,38 @@ export default function LoginScreen() {
             autoCorrect={false}
           />
 
-          <View>
+          <View style={styles.inputSpacing}>
             <Input
-              label="Mot de passe"
+              label="Password"
               placeholder="••••••••"
               value={password}
               onChangeText={setPassword}
-              secureTextEntry
+              secureTextEntry={!showPassword}
+              rightIcon={
+                <Pressable onPress={() => setShowPassword(!showPassword)}>
+                  <Text style={{ color: COLORS.textSecondary, fontSize: 13 }}>
+                    {showPassword ? "hide " : "show "}
+                  </Text>
+                </Pressable>
+              }
             />
           </View>
 
-          {error && <Text style={styles.error}>{error}</Text>}
-
+          {/* Login Button with direct spinner */}
           <Button
-            title="Se connecter →"
+            title="Sign In →"
             onPress={handleLogin}
-            loading={loading}
+            loading={isSubmitting}
+            disabled={isSubmitting}
           />
         </View>
 
-        {/* Register */}
+        {/* Navigation to Register */}
         <Button
-          title="Créer un compte"
+          title="Create an account"
           variant="outline"
           onPress={handleRegister}
+          disabled={isSubmitting}
         />
       </ScrollView>
     </KeyboardAvoidingView>
@@ -155,9 +201,14 @@ const styles = StyleSheet.create({
     width: "100%",
   },
 
+  inputSpacing: {
+    marginTop: 12,
+  },
+
   error: {
     color: "#e53935",
     fontSize: 12,
+    marginTop: 8,
     marginBottom: 12,
     textAlign: "center",
   },

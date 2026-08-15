@@ -2,19 +2,11 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { COLORS } from "../../constants/colors";
 
-interface MessageBubbleProps {
-  content: string;
-  time: string;
-  isMine: boolean;
-  isRead?: boolean;
-}
-
-export default function MessageBubble({
-  content,
-  time,
-  isMine,
-  isRead = false,
-}: MessageBubbleProps) {
+// content — the message text
+// time — formatted time string e.g. "10:42"
+// isMine — true if the message was sent by the current user (right side, colored bubble)
+// isRead — shows blue double checkmark if true (only for my messages)
+export default function MessageBubble({ content, time, isMine, isRead = false }) {
   return (
     <View
       style={[
@@ -47,6 +39,7 @@ export default function MessageBubble({
             {time}
           </Text>
 
+          {/* Only show checkmarks on my own messages */}
           {isMine && (
             <Text
               style={[
@@ -70,10 +63,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
 
+  // My messages align to the right
   mineContainer: {
     alignItems: "flex-end",
   },
 
+  // Other person's messages align to the left
   theirContainer: {
     alignItems: "flex-start",
   },
@@ -86,11 +81,13 @@ const styles = StyleSheet.create({
     borderRadius: 18,
   },
 
+  // My bubble — primary color, flat bottom-right corner
   mineBubble: {
     backgroundColor: COLORS.primary,
     borderBottomRightRadius: 5,
   },
 
+  // Their bubble — white with border, flat bottom-left corner
   theirBubble: {
     backgroundColor: COLORS.white,
     borderBottomLeftRadius: 5,
@@ -123,16 +120,19 @@ const styles = StyleSheet.create({
     fontSize: 9,
   },
 
+  // Time is lighter on my colored bubble
   mineTime: {
     color: "rgba(255,255,255,0.7)",
   },
 
+  // Gray double checkmark — sent but not read
   check: {
     color: "rgba(255,255,255,0.7)",
     fontSize: 10,
     marginLeft: 4,
   },
 
+  // Blue double checkmark — message was read
   readCheck: {
     color: "#B8F2FF",
   },

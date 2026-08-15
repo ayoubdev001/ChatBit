@@ -68,6 +68,9 @@ api.interceptors.response.use(
 );
 
 // Authentication API functions.
+
+export const getMe = () => api.get("/users/me");
+
 export const login = (data) => api.post("/auth/login", data);
 
 export const register = (data) => api.post("/auth/register", data);

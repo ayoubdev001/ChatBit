@@ -13,34 +13,60 @@ import { router } from "expo-router";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 import { COLORS } from "../../constants/colors";
+import { useAuth } from "../../context/AuthContext";
 
 export default function RegisterScreen() {
+  // ── Form fields ───────────────────────────────────────────────
   const [fullname, setFullname] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  //show and hide state
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // ── Local states ──────────────────────────────────────────────
+  // Controls loading spinner inside the register button only
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Client-side validation errors (e.g., password mismatch, empty fields)
+  const [localError, setLocalError] = useState(null);
+
+  // ── Auth context ──────────────────────────────────────────────
+  const { register, error: serverError } = useAuth();
+
+  // ── Handlers ──────────────────────────────────────────────────
   const handleRegister = async () => {
+    // Clear previous error message
+    setLocalError(null);
+
+    // Basic Client-side validations
+    if (!fullname.trim() || !email.trim() || !password || !confirmPassword) {
+      setLocalError("Please fill in all fields.");
+      return;
+    }
+
     if (password !== confirmPassword) {
-      console.log("Les mots de passe ne correspondent pas");
+      setLocalError("Passwords do not match.");
       return;
     }
 
     try {
-      setLoading(true);
+      // Trigger button spinner locally
+      setIsSubmitting(true);
 
-      
-      console.log({
-        fullname,
-        email,
-        password,
-      });
+      // Submit registration payload to AuthContext
+      await register({ fullname, email, password, role: "client" });
 
-    } catch (error) {
-      console.error("Register error:", error);
+      // Upon success, navigation redirect is handled by router or layout
+    } catch (err) {
+      setLocalError(
+        err?.response?.data?.message ||
+          "Registration failed. Please try again.",
+      );
     } finally {
-      setLoading(false);
+      // Always stop the button spinner regardless of outcome
+      setIsSubmitting(false);
     }
   };
 
@@ -48,11 +74,16 @@ export default function RegisterScreen() {
     router.replace("/(auth)/login");
   };
 
+  const displayError = localError || serverError;
+
   return (
+    // KeyboardAvoidingView adjusts layout height dynamically across iOS and Android
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior={Platform.OS === "android" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "android" ? 0 : 20}
     >
+      {/* ScrollView enables scrolling so the keyboard never blocks inputs/buttons */}
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
@@ -66,83 +97,96 @@ export default function RegisterScreen() {
         </View>
 
         {/* Header */}
-        <Text style={styles.title}>
-          Créez votre compte
-        </Text>
+        <Text style={styles.title}>Create Account</Text>
 
         <Text style={styles.subtitle}>
-          Rejoignez ChatBit et obtenez de l'aide
+          Join ChatBit and get instant support
           {"\n"}
-          quand vous en avez besoin.
+          whenever you need it.
         </Text>
 
-        {/* Form */}
+        {/* Form Inputs */}
         <View style={styles.form}>
+          {/* Validation & Server Error Display */}
+          {displayError ? (
+            <Text style={styles.error}>{displayError}</Text>
+          ) : null}
+
           <Input
-            label="Nom complet"
-            placeholder="Votre nom complet"
+            label="Full Name"
+            placeholder="Cristiano Ronaldo"
             value={fullname}
             onChangeText={setFullname}
             autoCapitalize="words"
           />
 
-          <Input
-            label="Adresse e-mail"
-            placeholder="ikram@example.com"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
+          <View style={styles.inputSpacing}>
+            <Input
+              label="Email Address"
+              placeholder="Ronaldo@domain.com"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+          </View>
 
-          <Input
-            label="Mot de passe"
-            placeholder="••••••••"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
+          <View style={styles.inputSpacing}>
+            <Input
+              label="Password"
+              placeholder="••••••••"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              rightIcon={
+                <Pressable onPress={() => setShowPassword(!showPassword)}>
+                  <Text style={{ color: COLORS.textSecondary, fontSize: 13 }}>
+                    {showPassword ? "hide " : "show "}
+                  </Text>
+                </Pressable>
+              }
+            />
+          </View>
 
-          <Input
-            label="Confirmer le mot de passe"
-            placeholder="••••••••"
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            secureTextEntry
-          />
+          <View style={styles.inputSpacing}>
+            <Input
+              label="Confirm Password"
+              placeholder="••••••••"
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              secureTextEntry={!showConfirmPassword}
+              rightIcon={
+                <Pressable
+                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  <Text style={{ color: COLORS.textSecondary, fontSize: 13 }}>
+                    {showConfirmPassword ? "hide " : "show "}
+                  </Text>
+                </Pressable>
+              }
+            />
+          </View>
 
-          <Button
-            title="Créer mon compte →"
-            onPress={handleRegister}
-            loading={loading}
-          />
+          {/* Button displaying spinner during submit */}
+          <View style={styles.buttonSpacing}>
+            <Button
+              title="Create Account →"
+              onPress={handleRegister}
+              loading={isSubmitting}
+              disabled={isSubmitting}
+            />
+          </View>
         </View>
 
-        {/* Login */}
+        {/* Login Link */}
         <View style={styles.loginContainer}>
-          <Text style={styles.loginText}>
-            Vous avez déjà un compte ?
-          </Text>
+          <Text style={styles.loginText}>Already have an account? </Text>
 
-          <Pressable onPress={goToLogin}>
-            <Text style={styles.loginLink}>
-              Se connecter
-            </Text>
+          <Pressable onPress={goToLogin} disabled={isSubmitting}>
+            <Text style={styles.loginLink}>Sign In</Text>
           </Pressable>
         </View>
-
-        {/* Footer */}
-        <Text style={styles.footer}>
-          En créant un compte, vous acceptez nos{" "}
-          <Text style={styles.link}>
-            Conditions d'utilisation
-          </Text>{" "}
-          et notre{" "}
-          <Text style={styles.link}>
-            Politique de confidentialité
-          </Text>.
-        </Text>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -201,6 +245,22 @@ const styles = StyleSheet.create({
     width: "100%",
   },
 
+  inputSpacing: {
+    marginTop: 10,
+  },
+
+  buttonSpacing: {
+    marginTop: 16,
+  },
+
+  error: {
+    color: COLORS.danger || "#e53935",
+    fontSize: 12,
+    marginTop: 10,
+    marginBottom: 6,
+    textAlign: "center",
+  },
+
   loginContainer: {
     flexDirection: "row",
     justifyContent: "center",
@@ -218,19 +278,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "700",
     marginLeft: 5,
-  },
-
-  footer: {
-    textAlign: "center",
-    color: COLORS.textSecondary,
-    fontSize: 9,
-    lineHeight: 15,
-    marginTop: 22,
-    paddingHorizontal: 10,
-  },
-
-  link: {
-    color: COLORS.primary,
-    fontWeight: "600",
   },
 });

@@ -2,13 +2,9 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { COLORS } from "../../constants/colors";
 
-interface TypingIndicatorProps {
-  name?: string;
-}
-
-export default function TypingIndicator({
-  name = "Agent",
-}: TypingIndicatorProps) {
+// name — the display name shown above the typing dots
+// defaults to "Agent" if not provided
+export default function TypingIndicator({ name = "Agent" }) {
   return (
     <View style={styles.container}>
       <View style={styles.avatar}>

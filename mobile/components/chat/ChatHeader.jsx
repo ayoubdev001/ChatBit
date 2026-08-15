@@ -3,15 +3,9 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
 import { COLORS } from "../../constants/colors";
 
-interface ChatHeaderProps {
-  name?: string;
-  online?: boolean;
-}
-
-export default function ChatHeader({
-  name = "Support Souq Express",
-  online = true,
-}: ChatHeaderProps) {
+// name — the agent or support name shown in the header
+// online — whether to show the green dot and "En ligne" status
+export default function ChatHeader({ name = "Support Souq Express", online = true }) {
   return (
     <View style={styles.container}>
       <Pressable

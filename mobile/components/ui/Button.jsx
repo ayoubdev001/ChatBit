@@ -4,19 +4,15 @@ import {
   Pressable,
   StyleSheet,
   Text,
-  ViewStyle,
 } from "react-native";
 import { COLORS } from "../../constants/colors";
 
-interface ButtonProps {
-  title: string;
-  onPress: () => void;
-  loading?: boolean;
-  disabled?: boolean;
-  variant?: "primary" | "outline";
-  style?: ViewStyle;
-}
-
+// title   — the button label
+// onPress — called when the button is tapped
+// loading — shows a spinner instead of the title while a request is running
+// disabled — blocks press when true (e.g. empty form fields)
+// variant — "primary" (filled) or "outline" (white with border)
+// style   — optional extra styles passed from the parent
 export default function Button({
   title,
   onPress,
@@ -24,7 +20,7 @@ export default function Button({
   disabled = false,
   variant = "primary",
   style,
-}: ButtonProps) {
+}) {
   const isOutline = variant === "outline";
 
   return (
@@ -40,6 +36,7 @@ export default function Button({
       ]}
     >
       {loading ? (
+        // Show spinner while the request is in flight
         <ActivityIndicator
           size="small"
           color={isOutline ? COLORS.primary : COLORS.white}
@@ -65,6 +62,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 20,
+    marginBottom: 12,
   },
 
   primaryButton: {
