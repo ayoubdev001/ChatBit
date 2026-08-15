@@ -1,5 +1,6 @@
 # ChatBit 💬
 
+
 Real-time customer support chat application built for **Souq Express**, a Moroccan e-commerce platform.  
 Replaces slow telephone/email support with an instant WhatsApp-style chat experience.
 
@@ -107,7 +108,7 @@ The core concept of this project is **WebSocket** — specifically how it differ
 
 ```
 ChatBit/
-```
+
 ChatBit/
 ├── backend/
 │   ├── config/
@@ -194,7 +195,7 @@ ChatBit/
         ├── conversation.js
         ├── message.js
         └── user.js
-```
+
 
 ---
 
@@ -328,36 +329,42 @@ API docs available at `http://localhost:3000/docs` (Scalar UI)
 | `typing:start` | `{ conversationId }` | Started typing |
 | `typing:stop` | `{ conversationId }` | Stopped typing |
 
+ ---
+
 ### Server → Client
-│   │   ├── socket.auth.js       # JWT middleware for Socket.IO
-│   │   └── chat.handlers.js     # all real-time event handlers
-│   ├── docs/
-│   │   └── scalar.yaml          # OpenAPI spec for Scalar UI
-│   ├── app.js                   # Express app setup
-│   ├── server.js                # HTTP + Socket.IO bootstrap
-│   ├── schema.sql               # Database schema (deliverable)
-│   ├── docker-compose.yml       # PostgreSQL container
-│   └── .env                     # environment variables (not committed)
-│
+
+### Server → Client
+```text
+Server → Client
+├── socket.auth.js        # JWT middleware for Socket.IO
+├── chat.handlers.js      # All real-time event handlers
+├── docs/
+│   └── scalar.yaml       # OpenAPI spec for Scalar UI
+├── app.js                # Express app setup
+├── server.js             # HTTP + Socket.IO bootstrap
+├── schema.sql             # Database schema (deliverable)
+├── docker-compose.yml     # PostgreSQL container
+└── .env                  # Environment variables (not committed)
+
 └── mobile/
     ├── app/
-    │   ├── _layout.jsx          # Root layout + QueryClient + auth protection
+    │   ├── _layout.jsx    # Root layout + QueryClient + auth protection
     │   ├── (auth)/
     │   │   ├── _layout.jsx
     │   │   ├── login.jsx
     │   │   └── register.jsx
-    │   └── (app)/
-    │       ├── _layout.jsx
-    │       ├── index.jsx         # Conversations list
-    │       ├── profile.jsx
-    │       ├── new-conversation.jsx
-    │       └── chat/
-    │           └── [id].jsx      # Real-time chat screen
-    ├── api/
-    │   ├── axios.js              # Axios instance + interceptors
-    │   └── socket.js             # Socket.IO client + connect/disconnect
-    ├── asyncstorg/
-    │   └── storage.js            # AsyncStorage helpers (token)
+    │   ├── (app)/
+    │   │   ├── _layout.jsx
+    │   │   ├── index.jsx          # Conversations list
+    │   │   ├── profile.jsx
+    │   │   ├── new-conversation.jsx
+    │   │   └── chat/
+    │   │       └── [id].jsx        # Real-time chat screen
+    │   └── api/
+    │       ├── axios.js            # Axios instance + interceptors
+    │       └── socket.js            # Socket.IO client + connect/disconnect
+    ├── asyncstorage/
+    │   └── storage.js              # AsyncStorage helpers (token)
     ├── components/
     │   ├── chat/
     │   │   ├── ChatHeader.jsx
@@ -377,12 +384,11 @@ API docs available at `http://localhost:3000/docs` (Scalar UI)
     ├── constants/
     │   └── colors.js
     ├── context/
-    │   └── AuthContext.jsx       # Auth state + session restore
+    │   └── AuthContext.jsx          # Auth state + session restore
     └── types/
         ├── auth.js
         ├── conversation.js
-        ├── message.js
-        └── user.js
+        └── message.js
 ```
 
 ---
@@ -736,6 +742,53 @@ App restarts → getToken() finds JWT → getMe() restores session → socket re
 ```
 
 ---
+
+## Project Context
+
+**Souq Express** is a growing Moroccan e-commerce platform that previously managed customer support by telephone and email — slow, no centralized history, no real-time communication.
+
+**ChatBit** solves this by providing:
+- A mobile interface for customers to open support conversations
+- A real-time agent dashboard to handle multiple conversations
+- Instant message delivery via WebSocket
+- Full message history persisted in PostgreSQL
+- Typing indicators and presence for a WhatsApp-like experience
+
+---
+
+*ChatBit — Souq Express Customer Support · Built with Expo + Node.js + Socket.IO + PostgreSQL*
+
+# Update the IP in api/axios.js and api/socket.js
+# Replace 192.168.1.108 with your machine's local IP
+
+# Start Expo
+npm start
+
+# Scan the QR code with Expo Go
+```
+
+---
+
+## Authentication Flow
+
+```
+Register → bcrypt hashes password → stored in DB
+Login    → bcrypt compares → JWT signed → returned to client
+           ↓
+Mobile saves JWT to AsyncStorage
+           ↓
+Axios interceptor reads token → adds Authorization header to every request
+           ↓
+Socket connects → sends token in handshake auth → socketAuth verifies it
+           ↓
+App restarts → getToken() finds JWT → getMe() restores session → socket reconnects
+```
+
+---
+
+## Project Context
+
+**Souq Express** is a growing Moroccan e-commerce platform that previously managed customer support by telephone and email — slow, no centralized history, no real-time communication.
 
 **ChatBit** solves this by providing:
 - A mobile interface for customers to open support conversations
