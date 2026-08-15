@@ -720,18 +720,6 @@ npm start
 
 ### Environment Variables
 
-```env
-PORT=3000
-
-DB_HOST=127.0.0.1
-DB_PORT=5432
-DB_USER=admin
-DB_PASSWORD=admin123
-DB_NAME=chatbit
-
-JWT_SECRET=your_secret_here
-JWT_EXPIRES_IN=7d
-```
 
 ---
 
