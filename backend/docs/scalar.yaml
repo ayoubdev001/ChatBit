@@ -145,6 +145,7 @@
     "400": { "description": "Missing subject" },
     "403": { "description": "Only clients can create conversations" }
   }
+  }
     },
     "/conversations/{id}/messages": {
       "get": {
