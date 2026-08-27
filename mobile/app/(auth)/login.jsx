@@ -122,7 +122,7 @@ export default function LoginScreen() {
 
           {/* Login Button with direct spinner */}
           <Button
-            title="Sign In →"
+            title="Sign In "
             onPress={handleLogin}
             loading={isSubmitting}
             disabled={isSubmitting}

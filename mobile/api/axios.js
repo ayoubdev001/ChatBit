@@ -2,10 +2,8 @@ import axios from "axios";
 import { getToken } from "../asyncstorg/storage";
 
 // API URL from environment variable,
-// or use the local backend address as a fallback.
 export const API_URL =
-  process.env.EXPO_PUBLIC_API_URL ||
-  "http://192.168.1.108:3000/api";
+  "http://192.168.1.137:3000/api";
 
 // Create the Axios API client.
 const api = axios.create({
@@ -75,4 +73,4 @@ export const login = (data) => api.post("/auth/login", data);
 
 export const register = (data) => api.post("/auth/register", data);
 
-export default api;
+export default api

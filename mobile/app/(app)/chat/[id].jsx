@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { api } from "../../../api/axios";
+import  api  from "../../../api/axios";
 import { getSocket } from "../../../api/socket";
 import { useAuth } from "../../../context/AuthContext";
 import ChatHeader from "../../../components/chat/ChatHeader";
@@ -28,6 +28,7 @@ export default function ChatScreen() {
 
   const [isTyping, setIsTyping] = useState(false);
   const [typingUser, setTypingUser] = useState("");
+  const [messageText, setMessageText] = useState("");
 
   // 1. Fetch message history via REST API
   const {
@@ -40,9 +41,9 @@ export default function ChatScreen() {
     queryKey: ["messages", conversationId],
     queryFn: async () => {
       const response = await api.get(
-        `/api/conversations/${conversationId}/messages`
+        `/conversations/${conversationId}/messages`
       );
-      return response.data;
+      return response.data.messages;
     },
     enabled: !!conversationId,
   });
@@ -51,7 +52,7 @@ export default function ChatScreen() {
   const { data: conversation } = useQuery({
     queryKey: ["conversation", conversationId],
     queryFn: async () => {
-      const response = await api.get(`/api/conversations`);
+      const response = await api.get(`/conversations`);
       const list = response.data || [];
       return list.find((c) => c.id.toString() === conversationId.toString());
     },
@@ -68,7 +69,7 @@ export default function ChatScreen() {
 
     // Handle real-time incoming messages
     const handleNewMessage = (newMessage) => {
-      if (newMessage.conversationid?.toString() === conversationId.toString()) {
+      if (newMessage.conversationId?.toString() === conversationId.toString()) {
         queryClient.setQueryData(["messages", conversationId], (old = []) => [
           ...old,
           newMessage,
@@ -95,14 +96,15 @@ export default function ChatScreen() {
   }, [conversationId, queryClient, user]);
 
   // Handle sending a message
-  const handleSendMessage = (content) => {
+    const handleSendMessage = () => {
     const socket = getSocket();
-    if (!socket || !content.trim()) return;
+    if (!socket || !messageText.trim()) return;
 
     socket.emit("message:send", {
       conversationId,
-      content,
+      content: messageText,
     });
+    setMessageText("");
   };
 
   // Handle typing emissions
@@ -130,17 +132,17 @@ export default function ChatScreen() {
     );
   }
 
-  const isClosed = conversation?.status === "ferme";
+  const isClosed = conversation?.status === "fermee";
 
   return (
     <SafeAreaView style={styles.container}>
       <ChatHeader conversation={conversation} currentUser={user} />
 
-      <KeyboardAvoidingView
-        style={styles.keyboardContainer}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
-      >
+       <KeyboardAvoidingView
+          style={styles.keyboardContainer}
+          behavior="padding"
+          keyboardVerticalOffset={0}
+       >
         <FlatList
           ref={flatListRef}
           data={messages}
@@ -162,6 +164,8 @@ export default function ChatScreen() {
 
         {/* Input bar - disabled when conversation is closed */}
         <MessageInput
+          value={messageText}
+          onChangeText={setMessageText}
           onSend={handleSendMessage}
           onTypingStart={handleTypingStart}
           onTypingStop={handleTypingStop}

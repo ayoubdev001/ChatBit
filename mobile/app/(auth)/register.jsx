@@ -171,7 +171,7 @@ export default function RegisterScreen() {
           {/* Button displaying spinner during submit */}
           <View style={styles.buttonSpacing}>
             <Button
-              title="Create Account →"
+              title="Create Account "
               onPress={handleRegister}
               loading={isSubmitting}
               disabled={isSubmitting}
@@ -184,7 +184,7 @@ export default function RegisterScreen() {
           <Text style={styles.loginText}>Already have an account? </Text>
 
           <Pressable onPress={goToLogin} disabled={isSubmitting}>
-            <Text style={styles.loginLink}>Sign In</Text>
+            <Text style={styles.loginLink}>Sign In </Text>
           </Pressable>
         </View>
       </ScrollView>

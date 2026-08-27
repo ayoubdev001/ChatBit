@@ -3,12 +3,14 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { COLORS } from "../../constants/colors";
 import StatusBadge from "./StatusBadge";
 
-// subject — the conversation topic
-// message — the last message preview shown under the subject
-// time — formatted time string e.g. "10:42" or "Hier"
-// status — "en_attente" | "en_cours" | "fermee"
-// onPress — called when the card is tapped, navigates to the chat screen
-export default function ConversationCard({ subject, message, time, status, onPress }) {
+export default function ConversationCard({ conversation, onPress }) {
+  const { subject, status, createdAt } = conversation;
+
+  const time = new Date(createdAt).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
   return (
     <Pressable
       onPress={onPress}
@@ -34,14 +36,6 @@ export default function ConversationCard({ subject, message, time, status, onPre
 
           <Text style={styles.time}>{time}</Text>
         </View>
-
-        {/* Last message preview — cut to one line */}
-        <Text
-          style={styles.message}
-          numberOfLines={1}
-        >
-          {message}
-        </Text>
 
         {/* Colored dot + label showing conversation status */}
         <StatusBadge status={status} />
@@ -102,12 +96,5 @@ const styles = StyleSheet.create({
   time: {
     color: COLORS.textSecondary,
     fontSize: 10,
-  },
-
-  message: {
-    color: COLORS.textSecondary,
-    fontSize: 12,
-    marginTop: 5,
-    marginBottom: 8,
   },
 });

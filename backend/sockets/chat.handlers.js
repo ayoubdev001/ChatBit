@@ -21,10 +21,10 @@ export function registerChatHandlers(io, socket) {
     });
 
 
-  // 1 conversation:join
+  //      1 conversation:join
 
 
-  socket.on("conversation:join", async (conversationId) => {
+  socket.on("conversation:join", async ({ conversationId }) => {
     try {
       // Check that a conversation ID was actually provided.
       if (!conversationId) {
@@ -74,15 +74,11 @@ export function registerChatHandlers(io, socket) {
           await conversation.save();
 
           // Tell everyone already inside the room that the conversation has changed.
-          // The new agent hasn't joined the room yet,
+          // Send the FULL conversation object, not a partial patch —
+          // the client needs id/subject/etc, not just the changed fields.
           io.to(`conversation:${conversationId}`).emit(
-            // so we also send an update directly to them below.
             "conversation:updated",
-            {
-              conversationId,
-              status: "en_cours",
-              agentId: userId,
-            }
+            conversation
           );
         }
 
@@ -108,12 +104,8 @@ export function registerChatHandlers(io, socket) {
       console.log(`User ${userId} joined ${room}`);
 
       // Send the current conversation state to the user who just joined
-     
-      socket.emit("conversation:updated", {
-        conversationId,
-        status: conversation.status,
-        agentId: conversation.agentId,
-      });
+      // (full object again, same reason as above)
+      socket.emit("conversation:updated", conversation);
     } catch (err) {
       console.error("conversation:join error:", err);
 
@@ -125,10 +117,10 @@ export function registerChatHandlers(io, socket) {
   });
 
 
-    // conversation:leave
+    //    2 conversation:leave
 
 
-  socket.on("conversation:leave", (conversationId) => {
+  socket.on("conversation:leave", ({ conversationId }) => {
     if (!conversationId) {
       return;
     }

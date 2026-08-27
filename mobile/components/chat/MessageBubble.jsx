@@ -2,11 +2,17 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { COLORS } from "../../constants/colors";
 
-// content — the message text
-// time — formatted time string e.g. "10:42"
-// isMine — true if the message was sent by the current user (right side, colored bubble)
-// isRead — shows blue double checkmark if true (only for my messages)
-export default function MessageBubble({ content, time, isMine, isRead = false }) {
+// message — the message object from the backend: { id, conversationId, senderId, content, createdAt }
+// currentUserId — the logged-in user's id, used to determine which side the bubble is on
+export default function MessageBubble({ message, currentUserId }) {
+  const { content, senderId, createdAt } = message;
+  const isMine = senderId === currentUserId;
+
+  const time = new Date(createdAt).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
   return (
     <View
       style={[
@@ -41,12 +47,7 @@ export default function MessageBubble({ content, time, isMine, isRead = false })
 
           {/* Only show checkmarks on my own messages */}
           {isMine && (
-            <Text
-              style={[
-                styles.check,
-                isRead && styles.readCheck,
-              ]}
-            >
+            <Text style={styles.check}>
               ✓✓
             </Text>
           )}
@@ -125,15 +126,10 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.7)",
   },
 
-  // Gray double checkmark — sent but not read
+  // Gray double checkmark — message sent
   check: {
     color: "rgba(255,255,255,0.7)",
     fontSize: 10,
     marginLeft: 4,
-  },
-
-  // Blue double checkmark — message was read
-  readCheck: {
-    color: "#B8F2FF",
   },
 });

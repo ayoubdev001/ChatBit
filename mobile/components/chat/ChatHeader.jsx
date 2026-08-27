@@ -42,16 +42,13 @@ export default function ChatHeader({ name = "Support Souq Express", online = tru
         </View>
       </View>
 
-      <Pressable style={styles.moreButton}>
-        <Text style={styles.more}>•••</Text>
-      </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    height: 78,
+    height: 100,
     backgroundColor: COLORS.white,
     flexDirection: "row",
     alignItems: "center",
@@ -127,15 +124,5 @@ const styles = StyleSheet.create({
   status: {
     color: COLORS.textSecondary,
     fontSize: 10,
-  },
-
-  moreButton: {
-    padding: 8,
-  },
-
-  more: {
-    color: COLORS.textSecondary,
-    fontSize: 16,
-    letterSpacing: 2,
   },
 });

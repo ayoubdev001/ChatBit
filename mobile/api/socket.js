@@ -2,8 +2,7 @@ import { io } from "socket.io-client";
 import { getToken } from "../asyncstorg/storage";
 
 const SOCKET_URL =
-  process.env.EXPO_PUBLIC_API_URL?.replace("/api", "") ||
-  "http://192.168.1.108:3000";
+  "http://192.168.1.137:3000";
 
 let socket = null;
 

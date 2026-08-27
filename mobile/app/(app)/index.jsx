@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { api } from "../../api/axios";
+import  api  from "../../api/axios";
 import { getSocket } from "../../api/socket";
 import ConversationCard from "../../components/conversations/ConversationCard";
 import EmptyConversations from "../../components/conversations/EmptyConversations";
@@ -34,7 +34,7 @@ export default function ConversationsScreen() {
   } = useQuery({
     queryKey: ["conversations"],
     queryFn: async () => {
-      const response = await api.get("/api/conversations");
+      const response = await api.get("/conversations");
       return response.data;
     },
   });
@@ -76,7 +76,7 @@ export default function ConversationsScreen() {
   if (isError) {
     return (
       <ErrorMessage
-        message={error?.response?.data?.error || "Impossible de charger les conversations."}
+        message={error?.response?.data?.error || "Impossible de charger les conversations "}
         onRetry={refetch}
       />
     );

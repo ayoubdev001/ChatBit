@@ -30,7 +30,7 @@ export default function StatusBadge({ status }) {
       <View
         style={[
           styles.dot,
-          { backgroundColor: current.color },
+          { backgroundColor: current.color},
         ]}
       />
       <Text style={styles.text}>{current.label}</Text>

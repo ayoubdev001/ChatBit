@@ -14,24 +14,27 @@ import { router } from "expo-router";
 import Button from "../../components/ui/Button";
 import { COLORS } from "../../constants/colors";
 
+import api from "../../api/axios";
+
 export default function NewConversationScreen() {
   const [subject, setSubject] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleCreateConversation = async () => {
-    if (!subject.trim()) {
-      return;
-    }
+  if (!subject.trim()) {
+    return;
+  }
 
-    try {
-      setLoading(true);
-      console.log("New conversation:", subject);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    setLoading(true);
+    const response = await api.post("/conversations", { subject });
+    router.push(`/(app)/chat/${response.data.id}`);
+  } catch (error) {
+    console.error(error.response?.data?.error || error.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const goBack = () => {
     router.back();
@@ -40,7 +43,7 @@ export default function NewConversationScreen() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior={Platform.OS === "android" ? "padding" : undefined}
     >
       <ScrollView
         showsVerticalScrollIndicator={false}

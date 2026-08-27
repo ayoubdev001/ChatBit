@@ -18,9 +18,6 @@ export default function MessageInput({ value, onChangeText, onSend, disabled = f
 
   return (
     <View style={styles.container}>
-      <Pressable style={styles.plusButton}>
-        <Text style={styles.plus}>+</Text>
-      </Pressable>
 
       <TextInput
         value={value}
@@ -60,21 +57,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     gap: 8,
-  },
-
-  plusButton: {
-    width: 38,
-    height: 38,
-    borderRadius: 13,
-    backgroundColor: COLORS.background,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  plus: {
-    color: COLORS.primary,
-    fontSize: 23,
-    fontWeight: "400",
   },
 
   input: {
