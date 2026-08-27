@@ -1,5 +1,5 @@
 # ChatBit 💬
-# ChatBit 💬
+
 
 Real-time customer support chat application built for **Souq Express**, a Moroccan e-commerce platform.  
 Replaces slow telephone/email support with an instant WhatsApp-style chat experience.
@@ -108,7 +108,7 @@ The core concept of this project is **WebSocket** — specifically how it differ
 
 ```
 ChatBit/
-```
+
 ChatBit/
 ├── backend/
 │   ├── config/
@@ -195,7 +195,7 @@ ChatBit/
         ├── conversation.js
         ├── message.js
         └── user.js
-```
+
 
 ---
 
@@ -329,36 +329,42 @@ API docs available at `http://localhost:3000/docs` (Scalar UI)
 | `typing:start` | `{ conversationId }` | Started typing |
 | `typing:stop` | `{ conversationId }` | Stopped typing |
 
+ ---
+
 ### Server → Client
-│   │   ├── socket.auth.js       # JWT middleware for Socket.IO
-│   │   └── chat.handlers.js     # all real-time event handlers
-│   ├── docs/
-│   │   └── scalar.yaml          # OpenAPI spec for Scalar UI
-│   ├── app.js                   # Express app setup
-│   ├── server.js                # HTTP + Socket.IO bootstrap
-│   ├── schema.sql               # Database schema (deliverable)
-│   ├── docker-compose.yml       # PostgreSQL container
-│   └── .env                     # environment variables (not committed)
-│
+
+### Server → Client
+```text
+Server → Client
+├── socket.auth.js        # JWT middleware for Socket.IO
+├── chat.handlers.js      # All real-time event handlers
+├── docs/
+│   └── scalar.yaml       # OpenAPI spec for Scalar UI
+├── app.js                # Express app setup
+├── server.js             # HTTP + Socket.IO bootstrap
+├── schema.sql             # Database schema (deliverable)
+├── docker-compose.yml     # PostgreSQL container
+└── .env                  # Environment variables (not committed)
+
 └── mobile/
     ├── app/
-    │   ├── _layout.jsx          # Root layout + QueryClient + auth protection
+    │   ├── _layout.jsx    # Root layout + QueryClient + auth protection
     │   ├── (auth)/
     │   │   ├── _layout.jsx
     │   │   ├── login.jsx
     │   │   └── register.jsx
-    │   └── (app)/
-    │       ├── _layout.jsx
-    │       ├── index.jsx         # Conversations list
-    │       ├── profile.jsx
-    │       ├── new-conversation.jsx
-    │       └── chat/
-    │           └── [id].jsx      # Real-time chat screen
-    ├── api/
-    │   ├── axios.js              # Axios instance + interceptors
-    │   └── socket.js             # Socket.IO client + connect/disconnect
-    ├── asyncstorg/
-    │   └── storage.js            # AsyncStorage helpers (token)
+    │   ├── (app)/
+    │   │   ├── _layout.jsx
+    │   │   ├── index.jsx          # Conversations list
+    │   │   ├── profile.jsx
+    │   │   ├── new-conversation.jsx
+    │   │   └── chat/
+    │   │       └── [id].jsx        # Real-time chat screen
+    │   └── api/
+    │       ├── axios.js            # Axios instance + interceptors
+    │       └── socket.js            # Socket.IO client + connect/disconnect
+    ├── asyncstorage/
+    │   └── storage.js              # AsyncStorage helpers (token)
     ├── components/
     │   ├── chat/
     │   │   ├── ChatHeader.jsx
@@ -378,12 +384,11 @@ API docs available at `http://localhost:3000/docs` (Scalar UI)
     ├── constants/
     │   └── colors.js
     ├── context/
-    │   └── AuthContext.jsx       # Auth state + session restore
+    │   └── AuthContext.jsx          # Auth state + session restore
     └── types/
         ├── auth.js
         ├── conversation.js
-        ├── message.js
-        └── user.js
+        └── message.js
 ```
 
 ---
@@ -717,8 +722,6 @@ npm start
 
 # Scan the QR code with Expo Go
 ```
-
-### Environment Variables
 
 
 ---
