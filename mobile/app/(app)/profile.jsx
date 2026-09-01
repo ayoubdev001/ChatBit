@@ -5,11 +5,13 @@ import {
   View,
   ScrollView,
   SafeAreaView,
+  Pressable
 } from "react-native";
 import Button from "../../components/ui/Button";
 import Avatar from "../../components/ui/Avatar";
 import { COLORS } from "../../constants/colors";
 import { useAuth } from "../../context/AuthContext";
+import { router } from "expo-router";
 
 export default function ProfileScreen() {
   const { user, logout, loading } = useAuth();
@@ -17,6 +19,15 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
+
+      {/* back button */}
+       <Pressable
+              style={styles.backButton}
+              onPress={() => router.back()}
+            >
+              <Text style={styles.backIcon}> ‹ </Text>
+            </Pressable>
+
         {/* Header Avatar Section */}
         <View style={styles.header}>
           <Avatar name={user?.fullname || "User"} size={80} />
@@ -37,7 +48,7 @@ export default function ProfileScreen() {
                   : styles.clientBadgeText,
               ]}
             >
-              {user?.role === "agent" ? "Agent Support" : "Client"}
+              {user?.role === "agent" ? "Agent" : "Client"}
             </Text>
           </View>
         </View>
@@ -90,6 +101,17 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingVertical: 24,
+  },
+backButton: {
+    width: 36,
+    height: 40,
+    justifyContent: "center",
+  },
+
+  backIcon: {
+    fontSize: 32,
+    color: COLORS.text,
+    marginTop: -4,
   },
   header: {
     alignItems: "center",

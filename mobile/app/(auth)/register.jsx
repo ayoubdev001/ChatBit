@@ -21,9 +21,13 @@ export default function RegisterScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
+  const [role, setRole] = useState("client"); // Options: "client" | "agent"
+
   //show and hide state
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
 
   // ── Local states ──────────────────────────────────────────────
   // Controls loading spinner inside the register button only
@@ -70,10 +74,6 @@ export default function RegisterScreen() {
     }
   };
 
-  const goToLogin = () => {
-    router.replace("/(auth)/login");
-  };
-
   const displayError = localError || serverError;
 
   return (
@@ -111,6 +111,7 @@ export default function RegisterScreen() {
           {displayError ? (
             <Text style={styles.error}>{displayError}</Text>
           ) : null}
+          
 
           <Input
             label="Full Name"
@@ -130,6 +131,46 @@ export default function RegisterScreen() {
               autoCapitalize="none"
               autoCorrect={false}
             />
+          </View>
+
+          {/* Role Selection */}
+          <View style={styles.inputSpacing}>
+            <Text style={styles.label}>Account Type</Text>
+            <View style={styles.roleContainer}>
+              <Pressable
+                style={[
+                  styles.roleButton,
+                  role === "client" && styles.roleButtonActive,
+                ]}
+                onPress={() => setRole("client")}
+              >
+                <Text
+                  style={[
+                    styles.roleText,
+                    role === "client" && styles.roleTextActive,
+                  ]}
+                >
+                  client
+                </Text>
+              </Pressable>
+
+              <Pressable
+                style={[
+                  styles.roleButton,
+                  role === "agent" && styles.roleButtonActive,
+                ]}
+                onPress={() => setRole("agent")}
+              >
+                <Text
+                  style={[
+                    styles.roleText,
+                    role === "agent" && styles.roleTextActive,
+                  ]}
+                >
+                  agent
+                </Text>
+              </Pressable>
+            </View>
           </View>
 
           <View style={styles.inputSpacing}>
@@ -183,7 +224,7 @@ export default function RegisterScreen() {
         <View style={styles.loginContainer}>
           <Text style={styles.loginText}>Already have an account? </Text>
 
-          <Pressable onPress={goToLogin} disabled={isSubmitting}>
+          <Pressable onPress={() => router.replace("/(auth)/login")} disabled={isSubmitting}>
             <Text style={styles.loginLink}>Sign In </Text>
           </Pressable>
         </View>
@@ -243,6 +284,43 @@ const styles = StyleSheet.create({
 
   form: {
     width: "100%",
+  },
+
+   label: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: COLORS.text,
+    marginBottom: 6,
+  },
+
+  roleContainer: {
+    flexDirection: "row",
+    gap: 10,
+  },
+
+  roleButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: COLORS.border || "#e0e0e0",
+    alignItems: "center",
+    backgroundColor: COLORS.white || "#ffffff",
+  },
+
+  roleButtonActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+
+  roleText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: COLORS.textSecondary,
+  },
+
+  roleTextActive: {
+    color: COLORS.white,
   },
 
   inputSpacing: {

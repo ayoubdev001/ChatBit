@@ -61,14 +61,6 @@ export default function ConversationsScreen() {
     };
   }, [queryClient]);
 
-  const handleSelectConversation = (id) => {
-    router.push(`/(app)/chat/${id}`);
-  };
-
-  const handleNewConversation = () => {
-    router.push("/(app)/new-conversation");
-  };
-
   if (isLoading) {
     return <Loading />;
   }
@@ -90,17 +82,13 @@ export default function ConversationsScreen() {
           <Text style={styles.title}>Conversations</Text>
           <Text style={styles.subtitle}>
             {user?.role === "agent"
-              ? "Gérez les demandes de support"
-              : "Vos échanges avec le support client"}
+              ? "Gérez les demandes de support "
+              : "Vos échanges avec le support client "}
           </Text>
         </View>
-
-        {/* Show 'New Ticket' button only for clients */}
-        {user?.role === "client" && (
-          <Pressable style={styles.newButton} onPress={handleNewConversation}>
-            <Text style={styles.newButtonText}>+ Nouvelle</Text>
-          </Pressable>
-        )}
+         <Pressable style={styles.profileButton} onPress={() => router.push("/(app)/profile")}>
+               <Text style={styles.profileButtonText}>Profile </Text>
+               </Pressable>
       </View>
 
       {/* List */}
@@ -110,7 +98,7 @@ export default function ConversationsScreen() {
         renderItem={({ item }) => (
           <ConversationCard
             conversation={item}
-            onPress={() => handleSelectConversation(item.id)}
+            onPress={() => router.push(`/(app)/chat/${item.id}`)}
             currentUser={user}
           />
         )}
@@ -123,7 +111,15 @@ export default function ConversationsScreen() {
             colors={[COLORS.primary]}
           />
         }
-      />
+      /> 
+
+       {/* Show 'New Ticket' button only for clients */}
+        {user?.role === "client" && (
+          <Pressable style={styles.newButton} onPress={() => router.push("/(app)/new-conversation")}>
+            <Text style={styles.newButtonText}>+ Nouvelle </Text>
+          </Pressable>
+        )}
+
     </SafeAreaView>
   );
 }
@@ -138,10 +134,15 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingVertical: 30,
     backgroundColor: COLORS.white,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
+  },
+  profileButton: {
+    backgroundColor: COLORS.primary,
+    padding: 14,
+    borderRadius: 20, 
   },
   title: {
     fontSize: 22,
@@ -155,9 +156,11 @@ const styles = StyleSheet.create({
   },
   newButton: {
     backgroundColor: COLORS.primary,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    padding: 14,
     borderRadius: 20,
+    position:"absolute",
+    bottom: 35,
+    right: 20,  
   },
   newButtonText: {
     color: COLORS.white,
