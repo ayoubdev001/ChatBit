@@ -2,19 +2,17 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { COLORS } from "../../constants/colors";
 
-interface MessageBubbleProps {
-  content: string;
-  time: string;
-  isMine: boolean;
-  isRead?: boolean;
-}
+// message — the message object from the backend: { id, conversationId, senderId, content, createdAt }
+// currentUserId — the logged-in user's id, used to determine which side the bubble is on
+export default function MessageBubble({ message, currentUserId }) {
+  const { content, senderId, createdAt } = message;
+  const isMine = senderId === currentUserId;
 
-export default function MessageBubble({
-  content,
-  time,
-  isMine,
-  isRead = false,
-}: MessageBubbleProps) {
+  const time = new Date(createdAt).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
   return (
     <View
       style={[
@@ -47,13 +45,9 @@ export default function MessageBubble({
             {time}
           </Text>
 
+          {/* Only show checkmarks on my own messages */}
           {isMine && (
-            <Text
-              style={[
-                styles.check,
-                isRead && styles.readCheck,
-              ]}
-            >
+            <Text style={styles.check}>
               ✓✓
             </Text>
           )}
@@ -70,10 +64,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
 
+  // My messages align to the right
   mineContainer: {
     alignItems: "flex-end",
   },
 
+  // Other person's messages align to the left
   theirContainer: {
     alignItems: "flex-start",
   },
@@ -86,11 +82,13 @@ const styles = StyleSheet.create({
     borderRadius: 18,
   },
 
+  // My bubble — primary color, flat bottom-right corner
   mineBubble: {
     backgroundColor: COLORS.primary,
     borderBottomRightRadius: 5,
   },
 
+  // Their bubble — white with border, flat bottom-left corner
   theirBubble: {
     backgroundColor: COLORS.white,
     borderBottomLeftRadius: 5,
@@ -123,17 +121,15 @@ const styles = StyleSheet.create({
     fontSize: 9,
   },
 
+  // Time is lighter on my colored bubble
   mineTime: {
     color: "rgba(255,255,255,0.7)",
   },
 
+  // Gray double checkmark — message sent
   check: {
     color: "rgba(255,255,255,0.7)",
     fontSize: 10,
     marginLeft: 4,
-  },
-
-  readCheck: {
-    color: "#B8F2FF",
   },
 });

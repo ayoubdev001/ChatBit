@@ -2,13 +2,12 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { COLORS } from "../../constants/colors";
 
-type Status = "en_attente" | "en_cours" | "fermee";
-
-interface StatusBadgeProps {
-  status: Status;
-}
-
-export default function StatusBadge({ status }: StatusBadgeProps) {
+// status — one of three values that come from the backend:
+// "en_attente" → waiting for an agent to join
+// "en_cours"   → agent joined, conversation is active
+// "fermee"     → agent closed the conversation
+export default function StatusBadge({ status }) {
+  // Map each status to a display label and a color
   const config = {
     en_attente: {
       label: "En attente",
@@ -31,7 +30,7 @@ export default function StatusBadge({ status }: StatusBadgeProps) {
       <View
         style={[
           styles.dot,
-          { backgroundColor: current.color },
+          { backgroundColor: current.color},
         ]}
       />
       <Text style={styles.text}>{current.label}</Text>

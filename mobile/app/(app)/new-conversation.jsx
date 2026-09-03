@@ -14,26 +14,27 @@ import { router } from "expo-router";
 import Button from "../../components/ui/Button";
 import { COLORS } from "../../constants/colors";
 
+import api from "../../api/axios";
+
 export default function NewConversationScreen() {
   const [subject, setSubject] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleCreateConversation = async () => {
-    if (!subject.trim()) {
-      return;
-    }
+  if (!subject.trim()) {
+    return;
+  }
 
-    try {
-      setLoading(true);
-      console.log("New conversation:", subject);
-
-     
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    setLoading(true);
+    const response = await api.post("/conversations", { subject });
+    router.push(`/(app)/chat/${response.data.id}`);
+  } catch (error) {
+    console.error(error.response?.data?.error || error.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const goBack = () => {
     router.back();
@@ -42,7 +43,7 @@ export default function NewConversationScreen() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior={Platform.OS === "android" ? "padding" : undefined}
     >
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -58,7 +59,7 @@ export default function NewConversationScreen() {
           </Pressable>
 
           <Text style={styles.headerTitle}>
-            Nouvelle conversation
+            New conversation
           </Text>
 
           <View style={styles.headerSpacer} />
@@ -73,23 +74,23 @@ export default function NewConversationScreen() {
         </View>
 
         <Text style={styles.title}>
-          Comment pouvons-nous{"\n"}vous aider ?
+          How can we{"\n"}help you?
         </Text>
 
         <Text style={styles.description}>
-          Décrivez brièvement votre problème ou votre
-          question. Un agent vous répondra dès que possible.
+          Briefly describe your issue or
+          question. An agent will respond as soon as possible.
         </Text>
 
         <View style={styles.form}>
           <Text style={styles.label}>
-            Sujet de votre demande
+            Subject of your request
           </Text>
 
           <TextInput
             value={subject}
             onChangeText={setSubject}
-            placeholder="Ex : Problème avec ma commande"
+            placeholder="e.g. Issue with my order"
             placeholderTextColor={COLORS.textSecondary}
             style={styles.input}
             maxLength={100}
@@ -97,7 +98,7 @@ export default function NewConversationScreen() {
 
           <View style={styles.counterContainer}>
             <Text style={styles.helperText}>
-              Soyez précis pour nous aider à mieux vous accompagner.
+              Be specific to help us assist you better.
             </Text>
 
             <Text style={styles.counter}>
@@ -113,18 +114,18 @@ export default function NewConversationScreen() {
 
           <View style={styles.infoContent}>
             <Text style={styles.infoTitle}>
-              Temps de réponse
+              Response time
             </Text>
 
             <Text style={styles.infoText}>
-              Un agent est généralement disponible
-              en quelques minutes.
+              An agent is usually available
+              within a few minutes.
             </Text>
           </View>
         </View>
 
         <Button
-          title="Démarrer la conversation →"
+          title="Start conversation →"
           onPress={handleCreateConversation}
           loading={loading}
           disabled={!subject.trim()}
@@ -135,7 +136,7 @@ export default function NewConversationScreen() {
           onPress={goBack}
         >
           <Text style={styles.cancelText}>
-            Annuler
+            Cancel
           </Text>
         </Pressable>
       </ScrollView>

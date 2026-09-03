@@ -1,113 +1,271 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
+  SafeAreaView,
   StyleSheet,
-  Text,
-  View,
+  FlatList,
+  KeyboardAvoidingView,
+  Alert,
 } from "react-native";
 import { useLocalSearchParams } from "expo-router";
-
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import api from "../../../api/axios";
+import { getSocket } from "../../../api/socket";
+import { useAuth } from "../../../context/AuthContext";
 import ChatHeader from "../../../components/chat/ChatHeader";
 import MessageBubble from "../../../components/chat/MessageBubble";
 import MessageInput from "../../../components/chat/MessageInput";
 import TypingIndicator from "../../../components/chat/TypingIndicator";
+import Loading from "../../../components/ui/Loading";
+import ErrorMessage from "../../../components/ui/ErrorMessage";
 import { COLORS } from "../../../constants/colors";
 
-const messages = [
-  {
-    id: "1",
-    content: "Bonjour 👋 Comment pouvons-nous vous aider ?",
-    time: "10:41",
-    isMine: false,
-  },
-  {
-    id: "2",
-    content: "Bonjour, j'ai un problème avec ma commande.",
-    time: "10:42",
-    isMine: true,
-    isRead: true,
-  },
-  {
-    id: "3",
-    content: "Bien sûr ! Pouvez-vous me donner votre numéro de commande ?",
-    time: "10:43",
-    isMine: false,
-  },
-  {
-    id: "4",
-    content: "Oui, c'est la commande #SB-2847.",
-    time: "10:44",
-    isMine: true,
-    isRead: true,
-  },
-];
-
 export default function ChatScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id: conversationId } = useLocalSearchParams();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const flatListRef = useRef(null);
 
-  const [message, setMessage] = useState("");
-  const [showTyping, setShowTyping] = useState(true);
+  const [isTyping, setIsTyping] = useState(false);
+  const [typingUser, setTypingUser] = useState("");
+  const [messageText, setMessageText] = useState("");
 
-  const handleSend = () => {
-    if (!message.trim()) {
-      return;
-    }
+  // 1. Fetch message history via REST API
+  const {
+    data: messages = [],
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["messages", conversationId],
+    queryFn: async () => {
+      const response = await api.get(
+        `/conversations/${conversationId}/messages`
+      );
+      return response.data.messages;
+    },
+    enabled: !!conversationId,
+  });
 
-    console.log("Conversation:", id);
-    console.log("Message:", message);
+  // 2. Fetch conversation status/details
+  const { data: conversation } = useQuery({
+    queryKey: ["conversation", conversationId],
+    queryFn: async () => {
+      const response = await api.get(`/conversations`);
+      const list = response.data || [];
+      return list.find(
+        (c) => c.id.toString() === conversationId.toString()
+      );
+    },
+    enabled: !!conversationId,
+  });
 
-    setMessage("");
-    setShowTyping(false);
+  // 3. Setup WebSocket room listeners
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket || !conversationId) return;
+
+    // Join conversation room
+    socket.emit("conversation:join", { conversationId });
+
+    // Handle real-time incoming messages
+    const handleNewMessage = (newMessage) => {
+      if (
+        newMessage.conversationId?.toString() ===
+        conversationId.toString()
+      ) {
+        queryClient.setQueryData(
+          ["messages", conversationId],
+          (old = []) => [...old, newMessage]
+        );
+      }
+    };
+
+    // Handle typing status updates
+    const handleTypingUpdate = ({
+      userId,
+      username,
+      isTyping: typingState,
+    }) => {
+      if (userId !== user?.id) {
+        setIsTyping(typingState);
+        setTypingUser(username || "");
+      }
+    };
+
+    // Handle conversation status changes
+    const handleConversationUpdated = (payload) => {
+      if (
+        payload.conversationId?.toString() ===
+        conversationId.toString()
+      ) {
+        queryClient.setQueryData(
+          ["conversation", conversationId],
+          (old) => ({
+            ...old,
+            ...payload,
+          })
+        );
+      }
+    };
+
+    socket.on("message:new", handleNewMessage);
+    socket.on("typing:update", handleTypingUpdate);
+    socket.on("conversation:updated", handleConversationUpdated);
+
+    return () => {
+      socket.emit("conversation:leave", { conversationId });
+      socket.off("message:new", handleNewMessage);
+      socket.off("typing:update", handleTypingUpdate);
+      socket.off(
+        "conversation:updated",
+        handleConversationUpdated
+      );
+    };
+  }, [conversationId, queryClient, user]);
+
+  // Handle sending a message
+  const handleSendMessage = () => {
+    const socket = getSocket();
+    if (!socket || !messageText.trim()) return;
+
+    socket.emit("message:send", {
+      conversationId,
+      content: messageText,
+    });
+
+    setMessageText("");
   };
 
+  // 4. Agent-only: mark the conversation as closed
+  const closeMutation = useMutation({
+    mutationFn: async () => {
+      const response = await api.patch(
+        `/conversations/${conversationId}/close`
+      );
+      return response.data;
+    },
+    onSuccess: (updatedConversation) => {
+      queryClient.setQueryData(
+        ["conversation", conversationId],
+        (old) => ({
+          ...old,
+          ...updatedConversation,
+        })
+      );
+
+      // Refresh the agent's conversation list
+      queryClient.invalidateQueries({
+        queryKey: ["conversations"],
+      });
+    },
+    onError: (err) => {
+      Alert.alert(
+        "Erreur",
+        err?.response?.data?.error ||
+          "Impossible de fermer la conversation."
+      );
+    },
+  });
+
+  const handleClosePress = () => {
+    Alert.alert(
+      "Fermer la conversation",
+      "Le client ne pourra plus envoyer de messages. Confirmer ?",
+      [
+        {
+          text: "Annuler",
+          style: "cancel",
+        },
+        {
+          text: "Fermer",
+          style: "destructive",
+          onPress: () => closeMutation.mutate(),
+        },
+      ]
+    );
+  };
+
+  // Handle typing emissions
+  const handleTypingStart = () => {
+    const socket = getSocket();
+    socket?.emit("typing:start", { conversationId });
+  };
+
+  const handleTypingStop = () => {
+    const socket = getSocket();
+    socket?.emit("typing:stop", { conversationId });
+  };
+
+  if (isLoading) return <Loading />;
+
+  if (isError) {
+    return (
+      <ErrorMessage
+        message={
+          error?.response?.data?.error ||
+          "Impossible de charger les messages."
+        }
+        onRetry={refetch}
+      />
+    );
+  }
+
+  const isClosed = conversation?.status === "fermee";
+
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
-    >
+    <SafeAreaView style={styles.container}>
       <ChatHeader
-        name="Support Souq Express"
-        online={true}
+        conversation={conversation}
+        currentUser={user}
+        onClosePress={handleClosePress}
+        isClosing={closeMutation.isPending}
       />
 
-      <View style={styles.chatContainer}>
-        <ScrollView
-          style={styles.messages}
-          contentContainerStyle={styles.messagesContent}
-          showsVerticalScrollIndicator={false}
-        >
-          
-          <View style={styles.dateContainer}>
-            <Text style={styles.dateText}>
-              Aujourd'hui
-            </Text>
-          </View>
-
-          {messages.map((item) => (
+      <KeyboardAvoidingView
+        style={styles.keyboardContainer}
+        behavior="padding"
+        keyboardVerticalOffset={0}
+      >
+        <FlatList
+          ref={flatListRef}
+          data={messages}
+          keyExtractor={(item, index) => item?.id?.toString() || `item-${index}`}
+          renderItem={({ item }) => (
             <MessageBubble
-              key={item.id}
-              content={item.content}
-              time={item.time}
-              isMine={item.isMine}
-              isRead={item.isRead}
+              message={item}
+              currentUserId={user?.id}
             />
-          ))}
-
-          {showTyping && (
-            <TypingIndicator name="Support" />
           )}
-        </ScrollView>
-      </View>
+          contentContainerStyle={styles.messageList}
+          onContentSizeChange={() =>
+            flatListRef.current?.scrollToEnd({
+              animated: true,
+            })
+          }
+          onLayout={() =>
+            flatListRef.current?.scrollToEnd({
+              animated: false,
+            })
+          }
+        />
 
-      <MessageInput
-        value={message}
-        onChangeText={setMessage}
-        onSend={handleSend}
-      />
-    </KeyboardAvoidingView>
+        {/* Typing indicator */}
+        {isTyping && (
+          <TypingIndicator username={typingUser} />
+        )}
+
+        {/* Input bar - disabled when conversation is closed */}
+        <MessageInput
+          value={messageText}
+          onChangeText={setMessageText}
+          onSend={handleSendMessage}
+          onTypingStart={handleTypingStart}
+          onTypingStop={handleTypingStop}
+          disabled={isClosed}
+        />
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
@@ -116,34 +274,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-
-  chatContainer: {
+  keyboardContainer: {
     flex: 1,
   },
-
-  messages: {
-    flex: 1,
-  },
-
-  messagesContent: {
-    paddingTop: 15,
-    paddingBottom: 15,
-  },
-
-  dateContainer: {
-    alignSelf: "center",
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    marginBottom: 18,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-
-  dateText: {
-    color: COLORS.textSecondary,
-    fontSize: 9,
-    fontWeight: "600",
+  messageList: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
 });

@@ -19,6 +19,6 @@ export const COLORS = {
   clientBubble: "#0086A8",
   agentBubble: "#F4D9F2",
 
-  white: "#FFFFFF",
+  white: "#ffffff8a",
   black: "#000000",
 };

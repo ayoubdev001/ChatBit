@@ -1,17 +1,24 @@
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
 import { COLORS } from "../../constants/colors";
 
-interface ChatHeaderProps {
-  name?: string;
-  online?: boolean;
-}
-
+// name — the agent or support name shown in the header
+// online — whether to show the green dot and "En ligne" status
+// conversation / currentUser — used to decide whether the "close" action is shown
+// onClosePress — called when the agent taps the close button
+// isClosing — shows a spinner on the close button while the request is in flight
 export default function ChatHeader({
   name = "Support Souq Express",
   online = true,
-}: ChatHeaderProps) {
+  conversation,
+  currentUser,
+  onClosePress,
+  isClosing = false,
+}) {
+  const isClosed = conversation?.status === "fermee";
+  const canClose = currentUser?.role === "agent" && conversation && !isClosed;
+
   return (
     <View style={styles.container}>
       <Pressable
@@ -48,16 +55,29 @@ export default function ChatHeader({
         </View>
       </View>
 
-      <Pressable style={styles.moreButton}>
-        <Text style={styles.more}>•••</Text>
-      </Pressable>
+      {canClose && (
+        <Pressable
+          style={styles.closeButton}
+          onPress={onClosePress}
+          disabled={isClosing}
+          accessibilityRole="button"
+          accessibilityLabel="Clôturer la conversation"
+        >
+          {isClosing ? (
+            <ActivityIndicator size="small" color={COLORS.danger} />
+          ) : (
+            <Text style={styles.closeButtonText}>Fermer</Text>
+          )}
+        </Pressable>
+      )}
+
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    height: 78,
+    height: 100,
     backgroundColor: COLORS.white,
     flexDirection: "row",
     alignItems: "center",
@@ -111,6 +131,22 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
+  closeButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 20,
+    backgroundColor:"#ff0000"
+  },
+
+  closeButtonText: {
+    color: COLORS.text,
+    fontSize: 12,
+    fontWeight: "700",
+    marginLeft: 4,
+  },
+
   name: {
     color: COLORS.text,
     fontSize: 14,
@@ -133,15 +169,5 @@ const styles = StyleSheet.create({
   status: {
     color: COLORS.textSecondary,
     fontSize: 10,
-  },
-
-  moreButton: {
-    padding: 8,
-  },
-
-  more: {
-    color: COLORS.textSecondary,
-    fontSize: 16,
-    letterSpacing: 2,
   },
 });

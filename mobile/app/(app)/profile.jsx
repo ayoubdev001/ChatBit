@@ -1,204 +1,95 @@
 import React from "react";
 import {
-  Alert,
-  Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   View,
+  ScrollView,
+  SafeAreaView,
+  Pressable
 } from "react-native";
+import Button from "../../components/ui/Button";
+import Avatar from "../../components/ui/Avatar";
+import { COLORS } from "../../constants/colors";
+import { useAuth } from "../../context/AuthContext";
 import { router } from "expo-router";
 
-import { COLORS } from "../../constants/colors";
-
 export default function ProfileScreen() {
-  const handleLogout = () => {
-    Alert.alert(
-      "Déconnexion",
-      "Voulez-vous vraiment vous déconnecter ?",
-      [
-        {
-          text: "Annuler",
-          style: "cancel",
-        },
-        {
-          text: "Déconnexion",
-          style: "destructive",
-          onPress: () => {
-            // Logout الحقيقي غادي نربطوه من بعد
-            router.replace("/login");
-          },
-        },
-      ]
-    );
-  };
+  const { user, logout, loading } = useAuth();
 
   return (
-    <View style={styles.container}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
-      >
-        {/* Header */}
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+
+      {/* back button */}
+       <Pressable
+              style={styles.backButton}
+              onPress={() => router.back()}
+            >
+              <Text style={styles.backIcon}> ‹ </Text>
+            </Pressable>
+
+        {/* Header Avatar Section */}
         <View style={styles.header}>
-          <Pressable
-            style={styles.backButton}
-            onPress={() => router.back()}
+          <Avatar name={user?.fullname || "User"} size={80} />
+          <Text style={styles.name}>{user?.fullname || "Nom Non Disponible"}</Text>
+          <Text style={styles.email}>{user?.email || "email@example.com"}</Text>
+          
+          <View
+            style={[
+              styles.badge,
+              user?.role === "agent" ? styles.agentBadge : styles.clientBadge,
+            ]}
           >
-            <Text style={styles.backIcon}>‹</Text>
-          </Pressable>
-
-          <Text style={styles.headerTitle}>
-            Mon profil
-          </Text>
-
-          <View style={styles.headerSpacer} />
-        </View>
-
-        {/* Profile */}
-        <View style={styles.profileSection}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>I</Text>
-          </View>
-
-          <Text style={styles.name}>
-            Ikram Haddioui
-          </Text>
-
-          <Text style={styles.email}>
-            ikram@example.com
-          </Text>
-
-          <View style={styles.roleBadge}>
-            <View style={styles.roleDot} />
-            <Text style={styles.roleText}>
-              Client
+            <Text
+              style={[
+                styles.badgeText,
+                user?.role === "agent"
+                  ? styles.agentBadgeText
+                  : styles.clientBadgeText,
+              ]}
+            >
+              {user?.role === "agent" ? "Agent" : "Client"}
             </Text>
           </View>
         </View>
 
-        {/* Account */}
-        <Text style={styles.sectionTitle}>
-          Mon compte
-        </Text>
+        {/* User Info Details */}
+        <View style={styles.infoCard}>
+          <Text style={styles.sectionTitle}>Informations personnelles</Text>
 
-        <View style={styles.card}>
-          <ProfileItem
-            icon="👤"
-            label="Nom complet"
-            value="Ikram Haddioui"
-          />
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Nom complet</Text>
+            <Text style={styles.infoValue}>{user?.fullname || "-"}</Text>
+          </View>
 
-          <View style={styles.separator} />
+          <View style={styles.divider} />
 
-          <ProfileItem
-            icon="✉"
-            label="Email"
-            value="ikram@example.com"
-          />
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Adresse email</Text>
+            <Text style={styles.infoValue}>{user?.email || "-"}</Text>
+          </View>
 
-          <View style={styles.separator} />
+          <View style={styles.divider} />
 
-          <ProfileItem
-            icon="●"
-            label="Rôle"
-            value="Client"
-          />
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Rôle</Text>
+            <Text style={styles.infoValue}>
+              {user?.role === "agent" ? "Agent" : "Client"}
+            </Text>
+          </View>
         </View>
 
-        {/* Support */}
-        <Text style={styles.sectionTitle}>
-          Support
-        </Text>
-
-        <View style={styles.card}>
-          <Pressable style={styles.menuItem}>
-            <View style={styles.menuIcon}>
-              <Text>?</Text>
-            </View>
-
-            <View style={styles.menuContent}>
-              <Text style={styles.menuTitle}>
-                Centre d'aide
-              </Text>
-
-              <Text style={styles.menuSubtitle}>
-                Besoin d'aide ?
-              </Text>
-            </View>
-
-            <Text style={styles.arrow}>›</Text>
-          </Pressable>
-
-          <View style={styles.separator} />
-
-          <Pressable style={styles.menuItem}>
-            <View style={styles.menuIcon}>
-              <Text>i</Text>
-            </View>
-
-            <View style={styles.menuContent}>
-              <Text style={styles.menuTitle}>
-                À propos
-              </Text>
-
-              <Text style={styles.menuSubtitle}>
-                ChatBit v1.0.0
-              </Text>
-            </View>
-
-            <Text style={styles.arrow}>›</Text>
-          </Pressable>
+        {/* Actions */}
+        <View style={styles.actions}>
+          <Button
+            title="Se déconnecter"
+            onPress={logout}
+            loading={loading}
+            variant="danger"
+          />
         </View>
-
-        {/* Logout */}
-        <Pressable
-          style={({ pressed }) => [
-            styles.logoutButton,
-            pressed && styles.pressed,
-          ]}
-          onPress={handleLogout}
-        >
-          <Text style={styles.logoutIcon}>↪</Text>
-
-          <Text style={styles.logoutText}>
-            Se déconnecter
-          </Text>
-        </Pressable>
       </ScrollView>
-    </View>
-  );
-}
-
-interface ProfileItemProps {
-  icon: string;
-  label: string;
-  value: string;
-}
-
-function ProfileItem({
-  icon,
-  label,
-  value,
-}: ProfileItemProps) {
-  return (
-    <View style={styles.profileItem}>
-      <View style={styles.itemIcon}>
-        <Text style={styles.itemIconText}>
-          {icon}
-        </Text>
-      </View>
-
-      <View style={styles.itemContent}>
-        <Text style={styles.itemLabel}>
-          {label}
-        </Text>
-
-        <Text style={styles.itemValue}>
-          {value}
-        </Text>
-      </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -207,222 +98,94 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-
-  content: {
-    paddingHorizontal: 22,
-    paddingTop: 52,
-    paddingBottom: 40,
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingVertical: 24,
   },
-
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 28,
-  },
-
-  backButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 14,
-    backgroundColor: COLORS.white,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    alignItems: "center",
+backButton: {
+    width: 36,
+    height: 40,
     justifyContent: "center",
   },
 
   backIcon: {
+    fontSize: 32,
     color: COLORS.text,
-    fontSize: 30,
-    lineHeight: 30,
-    marginTop: -3,
+    marginTop: -4,
   },
-
-  headerTitle: {
-    color: COLORS.text,
-    fontSize: 17,
-    fontWeight: "800",
-  },
-
-  headerSpacer: {
-    width: 42,
-  },
-
-  profileSection: {
+  header: {
     alignItems: "center",
-    marginBottom: 32,
+    marginBottom: 24,
   },
-
-  avatar: {
-    width: 92,
-    height: 92,
-    borderRadius: 30,
-    backgroundColor: COLORS.primary,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 13,
-  },
-
-  avatarText: {
-    color: COLORS.white,
-    fontSize: 34,
-    fontWeight: "800",
-  },
-
   name: {
-    color: COLORS.text,
     fontSize: 20,
-    fontWeight: "800",
+    fontWeight: "700",
+    color: COLORS.text,
+    marginTop: 12,
   },
-
   email: {
+    fontSize: 14,
     color: COLORS.textSecondary,
-    fontSize: 12,
     marginTop: 4,
   },
-
-  roleBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#EAF7F0",
+  badge: {
+    marginTop: 12,
     paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    marginTop: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
-
-  roleDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: COLORS.success,
-    marginRight: 6,
+  clientBadge: {
+    backgroundColor: "#E3F2FD",
   },
-
-  roleText: {
-    color: COLORS.success,
-    fontSize: 10,
-    fontWeight: "700",
+  agentBadge: {
+    backgroundColor: "#E8F5E9",
   },
-
-  sectionTitle: {
-    color: COLORS.text,
-    fontSize: 15,
-    fontWeight: "800",
-    marginBottom: 10,
+  badgeText: {
+    fontSize: 12,
+    fontWeight: "600",
   },
-
-  card: {
+  clientBadgeText: {
+    color: "#1976D2",
+  },
+  agentBadgeText: {
+    color: "#2E7D32",
+  },
+  infoCard: {
     backgroundColor: COLORS.white,
-    borderRadius: 20,
-    paddingHorizontal: 15,
-    marginBottom: 25,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 24,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
-
-  profileItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 14,
-  },
-
-  itemIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: 13,
-    backgroundColor: COLORS.background,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 11,
-  },
-
-  itemIconText: {
+  sectionTitle: {
     fontSize: 14,
-  },
-
-  itemContent: {
-    flex: 1,
-  },
-
-  itemLabel: {
-    color: COLORS.textSecondary,
-    fontSize: 9,
-    marginBottom: 3,
-  },
-
-  itemValue: {
-    color: COLORS.text,
-    fontSize: 12,
     fontWeight: "700",
+    color: COLORS.textSecondary,
+    marginBottom: 16,
+    textTransform: "uppercase",
   },
-
-  separator: {
+  infoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 8,
+  },
+  infoLabel: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+  },
+  infoValue: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: COLORS.text,
+  },
+  divider: {
     height: 1,
     backgroundColor: COLORS.border,
+    marginVertical: 4,
   },
-
-  menuItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 14,
-  },
-
-  menuIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: 13,
-    backgroundColor: COLORS.background,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 11,
-  },
-
-  menuContent: {
-    flex: 1,
-  },
-
-  menuTitle: {
-    color: COLORS.text,
-    fontSize: 12,
-    fontWeight: "700",
-  },
-
-  menuSubtitle: {
-    color: COLORS.textSecondary,
-    fontSize: 9,
-    marginTop: 3,
-  },
-
-  arrow: {
-    color: COLORS.textSecondary,
-    fontSize: 24,
-  },
-
-  logoutButton: {
-    height: 52,
-    borderRadius: 17,
-    backgroundColor: "#FDEEEE",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 2,
-  },
-
-  logoutIcon: {
-    color: "#D95353",
-    fontSize: 19,
-    marginRight: 8,
-  },
-
-  logoutText: {
-    color: "#D95353",
-    fontSize: 13,
-    fontWeight: "700",
-  },
-
-  pressed: {
-    opacity: 0.7,
+  actions: {
+    marginTop: 8,
   },
 });
