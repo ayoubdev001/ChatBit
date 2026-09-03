@@ -50,7 +50,7 @@ export default function ChatHeader({
           />
 
           <Text style={styles.status}>
-            {online ? "En ligne" : "Hors ligne"}
+            {online ? "Online" : "Offline"}
           </Text>
         </View>
       </View>

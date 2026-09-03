@@ -107,23 +107,6 @@ export default function NewConversationScreen() {
           </View>
         </View>
 
-        <View style={styles.infoCard}>
-          <View style={styles.infoIcon}>
-            <Text style={styles.infoIconText}>i</Text>
-          </View>
-
-          <View style={styles.infoContent}>
-            <Text style={styles.infoTitle}>
-              Response time
-            </Text>
-
-            <Text style={styles.infoText}>
-              An agent is usually available
-              within a few minutes.
-            </Text>
-          </View>
-        </View>
-
         <Button
           title="Start conversation →"
           onPress={handleCreateConversation}
@@ -272,47 +255,6 @@ const styles = StyleSheet.create({
   counter: {
     color: COLORS.textSecondary,
     fontSize: 9,
-  },
-
-  infoCard: {
-    flexDirection: "row",
-    backgroundColor: "#F1EAF5",
-    borderRadius: 18,
-    padding: 14,
-    marginBottom: 22,
-  },
-
-  infoIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 11,
-    backgroundColor: COLORS.border,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 10,
-  },
-
-  infoIconText: {
-    color: COLORS.white,
-    fontSize: 15,
-    fontWeight: "800",
-  },
-
-  infoContent: {
-    flex: 1,
-  },
-
-  infoTitle: {
-    color: COLORS.text,
-    fontSize: 11,
-    fontWeight: "800",
-    marginBottom: 3,
-  },
-
-  infoText: {
-    color: COLORS.textSecondary,
-    fontSize: 10,
-    lineHeight: 15,
   },
 
   cancelButton: {

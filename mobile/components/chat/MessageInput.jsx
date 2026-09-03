@@ -22,7 +22,7 @@ export default function MessageInput({ value, onChangeText, onSend, disabled = f
       <TextInput
         value={value}
         onChangeText={onChangeText}
-        placeholder="Écrire un message..."
+        placeholder="Write a message…"
         placeholderTextColor={COLORS.textSecondary}
         style={styles.input}
         multiline

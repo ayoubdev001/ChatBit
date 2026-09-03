@@ -82,8 +82,8 @@ export default function ConversationsScreen() {
           <Text style={styles.title}>Conversations</Text>
           <Text style={styles.subtitle}>
             {user?.role === "agent"
-              ? "Gérez les demandes de support "
-              : "Vos échanges avec le support client "}
+              ? "Manage support requests "
+              : "Your conversations with customer support "}
           </Text>
         </View>
          <Pressable style={styles.profileButton} onPress={() => router.push("/(app)/profile")}>
@@ -116,7 +116,7 @@ export default function ConversationsScreen() {
        {/* Show 'New Ticket' button only for clients */}
         {user?.role === "client" && (
           <Pressable style={styles.newButton} onPress={() => router.push("/(app)/new-conversation")}>
-            <Text style={styles.newButtonText}>+ Nouvelle </Text>
+            <Text style={styles.newButtonText}>+ new </Text>
           </Pressable>
         )}
 
