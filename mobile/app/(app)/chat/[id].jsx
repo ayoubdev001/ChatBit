@@ -2,14 +2,13 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   SafeAreaView,
   StyleSheet,
-  View,
   FlatList,
   KeyboardAvoidingView,
-  Platform,
+  Alert,
 } from "react-native";
 import { useLocalSearchParams } from "expo-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import  api  from "../../../api/axios";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import api from "../../../api/axios";
 import { getSocket } from "../../../api/socket";
 import { useAuth } from "../../../context/AuthContext";
 import ChatHeader from "../../../components/chat/ChatHeader";
@@ -54,7 +53,9 @@ export default function ChatScreen() {
     queryFn: async () => {
       const response = await api.get(`/conversations`);
       const list = response.data || [];
-      return list.find((c) => c.id.toString() === conversationId.toString());
+      return list.find(
+        (c) => c.id.toString() === conversationId.toString()
+      );
     },
     enabled: !!conversationId,
   });
@@ -69,34 +70,62 @@ export default function ChatScreen() {
 
     // Handle real-time incoming messages
     const handleNewMessage = (newMessage) => {
-      if (newMessage.conversationId?.toString() === conversationId.toString()) {
-        queryClient.setQueryData(["messages", conversationId], (old = []) => [
-          ...old,
-          newMessage,
-        ]);
+      if (
+        newMessage.conversationId?.toString() ===
+        conversationId.toString()
+      ) {
+        queryClient.setQueryData(
+          ["messages", conversationId],
+          (old = []) => [...old, newMessage]
+        );
       }
     };
 
     // Handle typing status updates
-    const handleTypingUpdate = ({ userId, username, isTyping: typingState }) => {
+    const handleTypingUpdate = ({
+      userId,
+      username,
+      isTyping: typingState,
+    }) => {
       if (userId !== user?.id) {
         setIsTyping(typingState);
         setTypingUser(username || "");
       }
     };
 
+    // Handle conversation status changes
+    const handleConversationUpdated = (payload) => {
+      if (
+        payload.conversationId?.toString() ===
+        conversationId.toString()
+      ) {
+        queryClient.setQueryData(
+          ["conversation", conversationId],
+          (old) => ({
+            ...old,
+            ...payload,
+          })
+        );
+      }
+    };
+
     socket.on("message:new", handleNewMessage);
     socket.on("typing:update", handleTypingUpdate);
+    socket.on("conversation:updated", handleConversationUpdated);
 
     return () => {
       socket.emit("conversation:leave", { conversationId });
       socket.off("message:new", handleNewMessage);
       socket.off("typing:update", handleTypingUpdate);
+      socket.off(
+        "conversation:updated",
+        handleConversationUpdated
+      );
     };
   }, [conversationId, queryClient, user]);
 
   // Handle sending a message
-    const handleSendMessage = () => {
+  const handleSendMessage = () => {
     const socket = getSocket();
     if (!socket || !messageText.trim()) return;
 
@@ -104,7 +133,57 @@ export default function ChatScreen() {
       conversationId,
       content: messageText,
     });
+
     setMessageText("");
+  };
+
+  // 4. Agent-only: mark the conversation as closed
+  const closeMutation = useMutation({
+    mutationFn: async () => {
+      const response = await api.patch(
+        `/conversations/${conversationId}/close`
+      );
+      return response.data;
+    },
+    onSuccess: (updatedConversation) => {
+      queryClient.setQueryData(
+        ["conversation", conversationId],
+        (old) => ({
+          ...old,
+          ...updatedConversation,
+        })
+      );
+
+      // Refresh the agent's conversation list
+      queryClient.invalidateQueries({
+        queryKey: ["conversations"],
+      });
+    },
+    onError: (err) => {
+      Alert.alert(
+        "Erreur",
+        err?.response?.data?.error ||
+          "Impossible de fermer la conversation."
+      );
+    },
+  });
+
+  const handleClosePress = () => {
+    Alert.alert(
+      "Fermer la conversation",
+      "Le client ne pourra plus envoyer de messages. Confirmer ?",
+      [
+        {
+          text: "Annuler",
+          style: "cancel",
+        },
+        {
+          text: "Fermer",
+          style: "destructive",
+          onPress: () => closeMutation.mutate(),
+        },
+      ]
+    );
   };
 
   // Handle typing emissions
@@ -136,31 +215,45 @@ export default function ChatScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ChatHeader conversation={conversation} currentUser={user} />
+      <ChatHeader
+        conversation={conversation}
+        currentUser={user}
+        onClosePress={handleClosePress}
+        isClosing={closeMutation.isPending}
+      />
 
-       <KeyboardAvoidingView
-          style={styles.keyboardContainer}
-          behavior="padding"
-          keyboardVerticalOffset={0}
-       >
+      <KeyboardAvoidingView
+        style={styles.keyboardContainer}
+        behavior="padding"
+        keyboardVerticalOffset={0}
+      >
         <FlatList
           ref={flatListRef}
           data={messages}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item, index) => item?.id?.toString() || `item-${index}`}
           renderItem={({ item }) => (
-            <MessageBubble message={item} currentUserId={user?.id} />
+            <MessageBubble
+              message={item}
+              currentUserId={user?.id}
+            />
           )}
           contentContainerStyle={styles.messageList}
           onContentSizeChange={() =>
-            flatListRef.current?.scrollToEnd({ animated: true })
+            flatListRef.current?.scrollToEnd({
+              animated: true,
+            })
           }
           onLayout={() =>
-            flatListRef.current?.scrollToEnd({ animated: false })
+            flatListRef.current?.scrollToEnd({
+              animated: false,
+            })
           }
         />
 
         {/* Typing indicator */}
-        {isTyping && <TypingIndicator username={typingUser} />}
+        {isTyping && (
+          <TypingIndicator username={typingUser} />
+        )}
 
         {/* Input bar - disabled when conversation is closed */}
         <MessageInput

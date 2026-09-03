@@ -1,11 +1,24 @@
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
 import { COLORS } from "../../constants/colors";
 
 // name — the agent or support name shown in the header
 // online — whether to show the green dot and "En ligne" status
-export default function ChatHeader({ name = "Support Souq Express", online = true }) {
+// conversation / currentUser — used to decide whether the "close" action is shown
+// onClosePress — called when the agent taps the close button
+// isClosing — shows a spinner on the close button while the request is in flight
+export default function ChatHeader({
+  name = "Support Souq Express",
+  online = true,
+  conversation,
+  currentUser,
+  onClosePress,
+  isClosing = false,
+}) {
+  const isClosed = conversation?.status === "fermee";
+  const canClose = currentUser?.role === "agent" && conversation && !isClosed;
+
   return (
     <View style={styles.container}>
       <Pressable
@@ -41,6 +54,22 @@ export default function ChatHeader({ name = "Support Souq Express", online = tru
           </Text>
         </View>
       </View>
+
+      {canClose && (
+        <Pressable
+          style={styles.closeButton}
+          onPress={onClosePress}
+          disabled={isClosing}
+          accessibilityRole="button"
+          accessibilityLabel="Clôturer la conversation"
+        >
+          {isClosing ? (
+            <ActivityIndicator size="small" color={COLORS.danger} />
+          ) : (
+            <Text style={styles.closeButtonText}>Fermer</Text>
+          )}
+        </Pressable>
+      )}
 
     </View>
   );
@@ -100,6 +129,22 @@ const styles = StyleSheet.create({
 
   info: {
     flex: 1,
+  },
+
+  closeButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 20,
+    backgroundColor:"#ff0000"
+  },
+
+  closeButtonText: {
+    color: COLORS.text,
+    fontSize: 12,
+    fontWeight: "700",
+    marginLeft: 4,
   },
 
   name: {
