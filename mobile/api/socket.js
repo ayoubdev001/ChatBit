@@ -2,7 +2,7 @@ import { io } from "socket.io-client";
 import { getToken } from "../asyncstorg/storage";
 
 const SOCKET_URL =
-  "http://192.168.1.137:3000";
+  "http://192.168.1.217:3000";
 
 let socket = null;
 

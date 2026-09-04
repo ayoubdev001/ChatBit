@@ -3,7 +3,7 @@ import { getToken } from "../asyncstorg/storage";
 
 // API URL from environment variable,
 export const API_URL =
-  "http://192.168.1.137:3000/api";
+  "http://192.168.1.217:3000/api";
 
 // Create the Axios API client.
 const api = axios.create({

@@ -22,7 +22,7 @@ export default function MessageInput({ value, onChangeText, onSend, disabled = f
       <TextInput
         value={value}
         onChangeText={onChangeText}
-        placeholder="Écrire un message..."
+        placeholder="Write a message…"
         placeholderTextColor={COLORS.textSecondary}
         style={styles.input}
         multiline
@@ -48,10 +48,7 @@ export default function MessageInput({ value, onChangeText, onSend, disabled = f
 
 const styles = StyleSheet.create({
   container: {
-    minHeight: 70,
-    backgroundColor: COLORS.white,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+    minHeight: 100,
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 12,
@@ -63,8 +60,8 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 42,
     maxHeight: 100,
-    backgroundColor: COLORS.background,
-    borderRadius: 21,
+    backgroundColor: COLORS.white,
+    borderRadius: 15,
     paddingHorizontal: 15,
     paddingVertical: 10,
     color: COLORS.text,

@@ -82,19 +82,19 @@ export default function ConversationsScreen() {
           <Text style={styles.title}>Conversations</Text>
           <Text style={styles.subtitle}>
             {user?.role === "agent"
-              ? "Gérez les demandes de support "
-              : "Vos échanges avec le support client "}
+              ? "Manage support requests "
+              : "Your conversations with customer support "}
           </Text>
         </View>
          <Pressable style={styles.profileButton} onPress={() => router.push("/(app)/profile")}>
-               <Text style={styles.profileButtonText}>Profile </Text>
+               <Text style={styles.profileButtontext}>Profile </Text>
                </Pressable>
       </View>
 
       {/* List */}
       <FlatList
         data={conversations}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item, index) => item?.id?.toString() ?? `conv-${index}`}   
         renderItem={({ item }) => (
           <ConversationCard
             conversation={item}
@@ -116,7 +116,7 @@ export default function ConversationsScreen() {
        {/* Show 'New Ticket' button only for clients */}
         {user?.role === "client" && (
           <Pressable style={styles.newButton} onPress={() => router.push("/(app)/new-conversation")}>
-            <Text style={styles.newButtonText}>+ Nouvelle </Text>
+            <Text style={styles.newButtonText}>+ new </Text>
           </Pressable>
         )}
 
@@ -134,15 +134,18 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
-    paddingVertical: 30,
+    paddingVertical: 40,
     backgroundColor: COLORS.white,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
   },
   profileButton: {
     backgroundColor: COLORS.primary,
     padding: 14,
     borderRadius: 20, 
+  },
+   profileButtontext: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#ffffff",
   },
   title: {
     fontSize: 22,
@@ -159,12 +162,12 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 20,
     position:"absolute",
-    bottom: 35,
-    right: 20,  
+    bottom: 30,
+    right: 30,  
   },
   newButtonText: {
     color: COLORS.white,
-    fontSize: 13,
+    fontSize: 20,
     fontWeight: "600",
   },
   listContent: {

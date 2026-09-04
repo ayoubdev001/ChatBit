@@ -55,24 +55,24 @@ export default function ProfileScreen() {
 
         {/* User Info Details */}
         <View style={styles.infoCard}>
-          <Text style={styles.sectionTitle}>Informations personnelles</Text>
+          <Text style={styles.sectionTitle}>Personal information</Text>
 
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Nom complet</Text>
+            <Text style={styles.infoLabel}>Full name</Text>
             <Text style={styles.infoValue}>{user?.fullname || "-"}</Text>
           </View>
 
           <View style={styles.divider} />
 
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Adresse email</Text>
+            <Text style={styles.infoLabel}>Email address</Text>
             <Text style={styles.infoValue}>{user?.email || "-"}</Text>
           </View>
 
           <View style={styles.divider} />
 
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Rôle</Text>
+            <Text style={styles.infoLabel}>Role</Text>
             <Text style={styles.infoValue}>
               {user?.role === "agent" ? "Agent" : "Client"}
             </Text>
@@ -82,7 +82,7 @@ export default function ProfileScreen() {
         {/* Actions */}
         <View style={styles.actions}>
           <Button
-            title="Se déconnecter"
+            title="Log out"
             onPress={logout}
             loading={loading}
             variant="danger"
@@ -135,20 +135,20 @@ backButton: {
     borderRadius: 12,
   },
   clientBadge: {
-    backgroundColor: "#E3F2FD",
+    backgroundColor: "#8eccf88a",
   },
   agentBadge: {
-    backgroundColor: "#E8F5E9",
+    backgroundColor: "#aefcb5",
   },
   badgeText: {
     fontSize: 12,
     fontWeight: "600",
   },
   clientBadgeText: {
-    color: "#1976D2",
+    color: "#025ebb",
   },
   agentBadgeText: {
-    color: "#2E7D32",
+    color: "#01a709",
   },
   infoCard: {
     backgroundColor: COLORS.white,

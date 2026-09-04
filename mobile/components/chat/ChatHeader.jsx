@@ -29,7 +29,7 @@ export default function ChatHeader({
       </Pressable>
 
       <View style={styles.avatar}>
-        <Text style={styles.avatarText}>S</Text>
+        <Text style={styles.avatarText}>👤</Text>
 
         {online && <View style={styles.onlineDot} />}
       </View>
@@ -50,7 +50,7 @@ export default function ChatHeader({
           />
 
           <Text style={styles.status}>
-            {online ? "En ligne" : "Hors ligne"}
+            {online ? "Online" : "Offline"}
           </Text>
         </View>
       </View>
@@ -66,7 +66,7 @@ export default function ChatHeader({
           {isClosing ? (
             <ActivityIndicator size="small" color={COLORS.danger} />
           ) : (
-            <Text style={styles.closeButtonText}>Fermer</Text>
+            <Text style={styles.closeButtonText}> End Chat </Text>
           )}
         </Pressable>
       )}
@@ -82,8 +82,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
   },
 
   backButton: {
@@ -137,7 +135,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 20,
-    backgroundColor:"#ff0000"
+    backgroundColor:"#fd3131"
   },
 
   closeButtonText: {

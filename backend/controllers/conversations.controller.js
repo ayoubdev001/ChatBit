@@ -1,4 +1,4 @@
-import { Conversation, Message,} from "../models/index.js";
+import { Conversation, Message, User} from "../models/index.js";
 import { Op } from "sequelize";
 
                                                       // POST /api/conversations - client creates a new conversation
@@ -27,12 +27,15 @@ export async function createConversation(req, res, next) {
 export async function getConversations(req, res, next) {
   try {
     let conversations;
-
+     //client sees
     if (req.user.role === "client") {
       // Client sees only their own conversations
       conversations = await Conversation.findAll({
         where: { clientId: req.user.userId },
         order: [["createdAt", "DESC"]],
+         include: [
+          { model: User, as: "agent", attributes: ["id", "fullname"] },
+        ],
       });
     } else {
       // Agent sees waiting conversations or their own ongoing conversations
@@ -47,6 +50,9 @@ export async function getConversations(req, res, next) {
           ],
         },
         order: [["createdAt", "DESC"]],
+        include: [
+          { model: User, as: "client", attributes: ["id", "fullname"] },
+        ],
       });
     }
 
@@ -129,6 +135,7 @@ export async function closeConversation(req, res, next) {
        const io = req.app.get("io");
     if (io) {
       io.to(`conversation:${id}`).emit("conversation:updated", {
+        id: Number(id),
         conversationId: Number(id),
         status: "fermee",
         closedAt: conversation.closedAt,

@@ -31,14 +31,13 @@ export default function Input({ label, error, rightIcon, ...props }) {
 const styles = StyleSheet.create({
   container: {
     width: "100%",
-    marginBottom: 18,
+    marginBottom: 5,
   },
 
   label: {
     fontSize: 12,
     fontWeight: "600",
     color: COLORS.text,
-    marginBottom: 8,
   },
 
   // The border is now on the row, not the TextInput
