@@ -135,20 +135,20 @@ backButton: {
     borderRadius: 12,
   },
   clientBadge: {
-    backgroundColor: "#E3F2FD",
+    backgroundColor: "#8eccf88a",
   },
   agentBadge: {
-    backgroundColor: "#E8F5E9",
+    backgroundColor: "#aefcb5",
   },
   badgeText: {
     fontSize: 12,
     fontWeight: "600",
   },
   clientBadgeText: {
-    color: "#1976D2",
+    color: "#025ebb",
   },
   agentBadgeText: {
-    color: "#2E7D32",
+    color: "#01a709",
   },
   infoCard: {
     backgroundColor: COLORS.white,

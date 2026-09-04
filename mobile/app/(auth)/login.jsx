@@ -93,20 +93,17 @@ export default function LoginScreen() {
             <Text style={styles.error}>{displayError}</Text>
           ) : null}
 
+           <View>
           <Input
-            label="Email Address"
-            placeholder="example@domain.com"
+            placeholder="Email Address"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
           />
-
-          <View style={styles.inputSpacing}>
             <Input
-              label="Password"
-              placeholder="••••••••"
+              placeholder="Password"
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
@@ -199,12 +196,8 @@ const styles = StyleSheet.create({
 
   form: {
     width: "100%",
+    gap:10,
   },
-
-  inputSpacing: {
-    marginTop: 12,
-  },
-
   error: {
     color: "#e53935",
     fontSize: 12,

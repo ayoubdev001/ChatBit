@@ -134,10 +134,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
-    paddingVertical: 30,
+    paddingVertical: 40,
     backgroundColor: COLORS.white,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
   },
   profileButton: {
     backgroundColor: COLORS.primary,
@@ -164,12 +162,12 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 20,
     position:"absolute",
-    bottom: 35,
-    right: 20,  
+    bottom: 30,
+    right: 30,  
   },
   newButtonText: {
     color: COLORS.white,
-    fontSize: 13,
+    fontSize: 20,
     fontWeight: "600",
   },
   listContent: {

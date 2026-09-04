@@ -29,7 +29,7 @@ export default function ChatHeader({
       </Pressable>
 
       <View style={styles.avatar}>
-        <Text style={styles.avatarText}>S</Text>
+        <Text style={styles.avatarText}>👤</Text>
 
         {online && <View style={styles.onlineDot} />}
       </View>
@@ -82,8 +82,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
   },
 
   backButton: {

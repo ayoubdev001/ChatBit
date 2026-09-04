@@ -21,7 +21,7 @@ export default function ConversationCard({ conversation, onPress }) {
     >
       {/* Avatar — shows the first letter of support */}
       <View style={styles.avatar}>
-        <Text style={styles.avatarText}>S</Text>
+        <Text style={styles.avatarText}>👤</Text>
       </View>
 
       <View style={styles.content}>
@@ -70,7 +70,6 @@ const styles = StyleSheet.create({
   },
 
   avatarText: {
-    color: COLORS.border,
     fontSize: 18,
     fontWeight: "800",
   },

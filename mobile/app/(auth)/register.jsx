@@ -114,8 +114,7 @@ export default function RegisterScreen() {
           
 
           <Input
-            label="Full Name"
-            placeholder="Cristiano Ronaldo"
+            placeholder="Full Name"
             value={fullname}
             onChangeText={setFullname}
             autoCapitalize="words"
@@ -123,8 +122,7 @@ export default function RegisterScreen() {
 
           <View style={styles.inputSpacing}>
             <Input
-              label="Email Address"
-              placeholder="Ronaldo@domain.com"
+              placeholder="Email Address"
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -175,8 +173,8 @@ export default function RegisterScreen() {
 
           <View style={styles.inputSpacing}>
             <Input
-              label="Password"
-              placeholder="••••••••"
+              
+              placeholder="Password"
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
@@ -192,8 +190,7 @@ export default function RegisterScreen() {
 
           <View style={styles.inputSpacing}>
             <Input
-              label="Confirm Password"
-              placeholder="••••••••"
+              placeholder="Confirm Password"
               value={confirmPassword}
               onChangeText={setConfirmPassword}
               secureTextEntry={!showConfirmPassword}
@@ -295,7 +292,7 @@ const styles = StyleSheet.create({
 
   roleContainer: {
     flexDirection: "row",
-    gap: 10,
+    gap: 20,
   },
 
   roleButton: {
@@ -324,11 +321,11 @@ const styles = StyleSheet.create({
   },
 
   inputSpacing: {
-    marginTop: 10,
+    marginTop: 5,
   },
 
   buttonSpacing: {
-    marginTop: 16,
+    marginTop: 20,
   },
 
   error: {
@@ -353,7 +350,7 @@ const styles = StyleSheet.create({
 
   loginLink: {
     color: COLORS.primary,
-    fontSize: 12,
+    fontSize: 15,
     fontWeight: "700",
     marginLeft: 5,
   },

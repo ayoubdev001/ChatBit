@@ -213,9 +213,16 @@ export default function ChatScreen() {
 
   const isClosed = conversation?.status === "fermee";
 
+  //show user name 
+  const headerName =
+    user?.role === "agent"
+      ? conversation?.client?.fullname || "Client"
+      : conversation?.agent?.fullname || "Support Souq Express";
+
   return (
     <SafeAreaView style={styles.container}>
       <ChatHeader
+        name={headerName}
         conversation={conversation}
         currentUser={user}
         onClosePress={handleClosePress}
