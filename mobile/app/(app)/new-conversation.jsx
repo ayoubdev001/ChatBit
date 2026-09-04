@@ -68,7 +68,7 @@ export default function NewConversationScreen() {
         <View style={styles.illustrationContainer}>
           <View style={styles.illustration}>
             <Text style={styles.illustrationIcon}>
-              ?
+              💬
             </Text>
           </View>
         </View>

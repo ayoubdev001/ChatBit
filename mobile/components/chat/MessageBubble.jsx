@@ -64,31 +64,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
 
-  // My messages align to the right
+ 
   mineContainer: {
     alignItems: "flex-end",
   },
 
-  // Other person's messages align to the left
+  
   theirContainer: {
     alignItems: "flex-start",
   },
 
   bubble: {
-    maxWidth: "78%",
-    paddingHorizontal: 14,
-    paddingTop: 11,
+    maxWidth: "100%",
+    paddingHorizontal: 30,
+    paddingTop: 7,
     paddingBottom: 8,
     borderRadius: 18,
   },
 
-  // My bubble — primary color, flat bottom-right corner
+  
   mineBubble: {
     backgroundColor: COLORS.primary,
     borderBottomRightRadius: 5,
   },
 
-  // Their bubble — white with border, flat bottom-left corner
+
   theirBubble: {
     backgroundColor: COLORS.white,
     borderBottomLeftRadius: 5,
@@ -113,20 +113,20 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-end",
     alignItems: "center",
-    marginTop: 4,
+    marginTop: 1,
   },
 
   time: {
     color: COLORS.textSecondary,
-    fontSize: 9,
+    fontSize: 7,
   },
 
-  // Time is lighter on my colored bubble
+ 
   mineTime: {
     color: "rgba(255,255,255,0.7)",
   },
 
-  // Gray double checkmark — message sent
+  
   check: {
     color: "rgba(255,255,255,0.7)",
     fontSize: 10,

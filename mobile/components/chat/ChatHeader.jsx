@@ -66,7 +66,7 @@ export default function ChatHeader({
           {isClosing ? (
             <ActivityIndicator size="small" color={COLORS.danger} />
           ) : (
-            <Text style={styles.closeButtonText}>Fermer</Text>
+            <Text style={styles.closeButtonText}> End Chat </Text>
           )}
         </Pressable>
       )}
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 20,
-    backgroundColor:"#ff0000"
+    backgroundColor:"#fd3131"
   },
 
   closeButtonText: {

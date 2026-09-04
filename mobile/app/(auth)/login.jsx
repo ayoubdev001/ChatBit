@@ -77,7 +77,7 @@ export default function LoginScreen() {
         {/* Logo Section */}
         <View style={styles.logoContainer}>
           <View style={styles.logo}>
-            <Text style={styles.logoIcon}>▰</Text>
+            <Text style={styles.logoIcon}>💬</Text>
           </View>
         </View>
 

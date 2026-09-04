@@ -1,4 +1,4 @@
-import React from "react";
+
 import { StyleSheet, Text, View } from "react-native";
 import { COLORS } from "../../constants/colors";
 
@@ -13,7 +13,7 @@ export default function TypingIndicator({ name = "Agent" }) {
 
       <View style={styles.content}>
         <Text style={styles.name}>
-          {name} est en train d'écrire
+          {name} is typing
         </Text>
 
         <View style={styles.dots}>

@@ -60,7 +60,7 @@ export default function RegisterScreen() {
       setIsSubmitting(true);
 
       // Submit registration payload to AuthContext
-      await register({ fullname, email, password, role: "client" });
+      await register({ fullname, email, password, role });
 
       // Upon success, navigation redirect is handled by router or layout
     } catch (err) {
@@ -92,7 +92,7 @@ export default function RegisterScreen() {
         {/* Logo */}
         <View style={styles.logoContainer}>
           <View style={styles.logo}>
-            <Text style={styles.logoIcon}>▰</Text>
+            <Text style={styles.logoIcon}>💬</Text>
           </View>
         </View>
 

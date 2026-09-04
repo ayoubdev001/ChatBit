@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   SafeAreaView,
   StyleSheet,
@@ -163,22 +163,22 @@ export default function ChatScreen() {
       Alert.alert(
         "Erreur",
         err?.response?.data?.error ||
-          "Impossible de fermer la conversation."
+          "Unable to close the conversation."
       );
     },
   });
 
   const handleClosePress = () => {
     Alert.alert(
-      "Fermer la conversation",
-      "Le client ne pourra plus envoyer de messages. Confirmer ?",
+      "Close the conversation.",
+      "The client will no longer be able to send messages. Confirm.?",
       [
         {
-          text: "Annuler",
+          text: "Cancel",
           style: "cancel",
         },
         {
-          text: "Fermer",
+          text: "Confirm",
           style: "destructive",
           onPress: () => closeMutation.mutate(),
         },

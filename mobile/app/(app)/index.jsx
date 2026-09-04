@@ -87,14 +87,14 @@ export default function ConversationsScreen() {
           </Text>
         </View>
          <Pressable style={styles.profileButton} onPress={() => router.push("/(app)/profile")}>
-               <Text style={styles.profileButtonText}>Profile </Text>
+               <Text style={styles.profileButtontext}>Profile </Text>
                </Pressable>
       </View>
 
       {/* List */}
       <FlatList
         data={conversations}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item, index) => item?.id?.toString() ?? `conv-${index}`}   
         renderItem={({ item }) => (
           <ConversationCard
             conversation={item}
@@ -143,6 +143,11 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
     padding: 14,
     borderRadius: 20, 
+  },
+   profileButtontext: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#ffffff",
   },
   title: {
     fontSize: 22,

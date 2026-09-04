@@ -129,6 +129,7 @@ export async function closeConversation(req, res, next) {
        const io = req.app.get("io");
     if (io) {
       io.to(`conversation:${id}`).emit("conversation:updated", {
+        id: Number(id),
         conversationId: Number(id),
         status: "fermee",
         closedAt: conversation.closedAt,
