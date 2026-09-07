@@ -93,6 +93,20 @@ export default function ChatScreen() {
       }
     };
 
+    //handle online/offline
+    const handlePresenceUpdate = ({ userId: presenceUserId, isOnline }) => {
+  queryClient.setQueryData(["conversation", conversationId], (old) => {
+    if (!old) return old;
+    if (old.client?.id === presenceUserId) {
+      return { ...old, client: { ...old.client, isOnline } };
+    }
+    if (old.agent?.id === presenceUserId) {
+      return { ...old, agent: { ...old.agent, isOnline } };
+    }
+    return old;
+  });
+};
+
     // Handle conversation status changes
     const handleConversationUpdated = (payload) => {
       if (
@@ -112,15 +126,14 @@ export default function ChatScreen() {
     socket.on("message:new", handleNewMessage);
     socket.on("typing:update", handleTypingUpdate);
     socket.on("conversation:updated", handleConversationUpdated);
+    socket.on("presence:update", handlePresenceUpdate);
 
     return () => {
       socket.emit("conversation:leave", { conversationId });
       socket.off("message:new", handleNewMessage);
       socket.off("typing:update", handleTypingUpdate);
-      socket.off(
-        "conversation:updated",
-        handleConversationUpdated
-      );
+      socket.off("conversation:updated",handleConversationUpdated);
+      socket.off("presence:update", handlePresenceUpdate);
     };
   }, [conversationId, queryClient, user]);
 
@@ -219,10 +232,17 @@ export default function ChatScreen() {
       ? conversation?.client?.fullname || "Client"
       : conversation?.agent?.fullname || "Support Souq Express";
 
+      //show online
+      const headerOnline =
+  user?.role === "agent"
+    ? !!conversation?.client?.isOnline
+    : !!conversation?.agent?.isOnline;
+
   return (
     <SafeAreaView style={styles.container}>
       <ChatHeader
         name={headerName}
+        online={headerOnline}
         conversation={conversation}
         currentUser={user}
         onClosePress={handleClosePress}
