@@ -34,7 +34,7 @@ export async function getConversations(req, res, next) {
         where: { clientId: req.user.userId },
         order: [["createdAt", "DESC"]],
          include: [
-          { model: User, as: "agent", attributes: ["id", "fullname"] },
+          { model: User, as: "agent", attributes: ["id", "fullname", "isOnline"] },
         ],
       });
     } else {
@@ -51,7 +51,7 @@ export async function getConversations(req, res, next) {
         },
         order: [["createdAt", "DESC"]],
         include: [
-          { model: User, as: "client", attributes: ["id", "fullname"] },
+          { model: User, as: "client", attributes: ["id", "fullname", "isOnline"] },
         ],
       });
     }

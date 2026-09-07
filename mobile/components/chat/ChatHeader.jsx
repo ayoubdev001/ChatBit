@@ -1,4 +1,4 @@
-import React from "react";
+
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
 import { COLORS } from "../../constants/colors";
@@ -10,7 +10,7 @@ import { COLORS } from "../../constants/colors";
 // isClosing — shows a spinner on the close button while the request is in flight
 export default function ChatHeader({
   name = "Support Souq Express",
-  online = true,
+  online = false,
   conversation,
   currentUser,
   onClosePress,
